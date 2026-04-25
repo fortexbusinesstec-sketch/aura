@@ -1,0 +1,59 @@
+/**
+ * ══════════════════════════════════════════════════════
+ * AURA OS — Tema "Aura Warm" (Referencia / Template)
+ * ══════════════════════════════════════════════════════
+ *
+ * INSTRUCCIONES PARA CREAR UN NUEVO TEMA:
+ *
+ * 1. Copia este archivo como `src/styles/themes/<nombre>.css`
+ *    Ejemplo: `src/styles/themes/midnight.css`
+ *
+ * 2. Cambia el selector de `:root` a `.<nombre>-theme`
+ *    Ejemplo: `.midnight-theme { ... }`
+ *
+ * 3. Ajusta los valores HSL con los nuevos colores.
+ *    Los NOMBRES de las variables deben permanecer IDÉNTICOS.
+ *
+ * 4. Importa el archivo en globals.css:
+ *    @import "../styles/themes/midnight.css";
+ *
+ * 5. En ThemeProvider (o donde controles el tema), aplica la clase
+ *    al elemento <html>:
+ *    document.documentElement.className = 'midnight-theme'
+ *
+ * Los componentes no necesitan ningún cambio.
+ * ══════════════════════════════════════════════════════
+ */
+
+/*
+:root {                         <- para el tema por defecto
+.midnight-theme {               <- para un tema secundario
+.ocean-theme {                  <- para un tercer tema
+.forest-theme {                 <- para un cuarto tema
+
+  --background:           50 40% 94%;
+  --foreground:           40 25% 14%;
+  --card:                 0 0% 100%;
+  --card-foreground:      40 25% 14%;
+  --popover:              0 0% 100%;
+  --popover-foreground:   40 25% 14%;
+  --primary:              39 100% 87%;
+  --primary-foreground:   39 28% 22%;
+  --secondary:            48 30% 88%;
+  --secondary-foreground: 40 25% 14%;
+  --muted:                48 25% 86%;
+  --muted-foreground:     40 11% 43%;
+  --accent:               48 40% 89%;
+  --accent-foreground:    40 25% 14%;
+  --destructive:          6 62% 66%;
+  --destructive-foreground: 0 0% 100%;
+  --success:              113 23% 71%;
+  --success-foreground:   113 40% 20%;
+  --warning:              38 82% 70%;
+  --warning-foreground:   38 50% 20%;
+  --border:               45 18% 85%;
+  --input:                45 18% 85%;
+  --ring:                 39 100% 87%;
+  --radius:               0.75rem;
+}
+*/

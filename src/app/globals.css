@@ -1,0 +1,229 @@
+@import "tailwindcss";
+
+/* ══════════════════════════════════════════════════════
+   AURA OS — Design Token System
+   Tema activo: "Aura Warm"
+   ──────────────────────────────────────────────────────
+   Arquitectura extensible para múltiples temas futuros.
+   Para añadir un nuevo tema:
+     1. Crea src/styles/themes/<nombre>.css
+     2. Importa el archivo aquí (see imports below)
+     3. Agrega la clase al <html> via ThemeProvider
+   Los componentes no necesitan ningún cambio.
+   ══════════════════════════════════════════════════════ */
+
+/* ── Importar temas adicionales aquí cuando existan ──
+   @import "../styles/themes/midnight.css";
+   @import "../styles/themes/ocean.css";
+   @import "../styles/themes/forest.css";
+   ──────────────────────────────────────────────────── */
+
+/* ══════════════════════════════════════════════════════
+   🎨  TEMA: Aura Warm  (Activo por defecto en :root)
+   ══════════════════════════════════════════════════════ */
+:root {
+  /* ── 1. FONDOS Y TEXTOS BASE ─────────────────────── */
+  /* background: #F6F4E8 — crema/alabastro, fondo principal */
+  --background: 50 40% 94%;
+  /* foreground: #2C261A — gris cálido oscuro, nunca negro puro */
+  --foreground: 40 25% 14%;
+
+  /* ── 2. PANELES Y TARJETAS ───────────────────────── */
+  /* card: #FFFFFF — blanco puro, se eleva visualmente sobre el crema */
+  --card: 0 0% 100%;
+  --card-foreground: 40 25% 14%;
+  /* popover: para tooltips y dropdowns */
+  --popover: 0 0% 100%;
+  --popover-foreground: 40 25% 14%;
+
+  /* ── 3. ACCIÓN PRIMARIA Y BOTONES ────────────────── */
+  /* primary: #FFE8BE — dorado/amarillo pastel, CTAs y acentos */
+  --primary: 39 100% 87%;
+  /* primary-foreground: #473E28 — texto oscuro legible sobre dorado */
+  --primary-foreground: 39 28% 22%;
+
+  /* secondary: #EAE6D7 — crema más oscuro para acciones secundarias */
+  --secondary: 48 30% 88%;
+  --secondary-foreground: 40 25% 14%;
+
+  /* ── 4. ESTADO MUTED ─────────────────────────────── */
+  /* muted: #E5E2D1 — inputs deshabilitados, secciones inactivas */
+  --muted: 48 25% 86%;
+  /* muted-foreground: #7A7261 — texto secundario, placeholders */
+  --muted-foreground: 40 11% 43%;
+
+  /* ── 5. ACCENT / HOVER ───────────────────────────── */
+  /* accent: #F0EAD6 — hover en listas y menús */
+  --accent: 48 40% 89%;
+  --accent-foreground: 40 25% 14%;
+
+  /* ── 6. ESTADOS Y ALERTAS ───────────────────────── */
+  /* destructive: #DF7B71 — rojo coral suave */
+  --destructive: 6 62% 66%;
+  --destructive-foreground: 0 0% 100%;
+
+  /* success: #A7C7A3 — verde salvia "Pagado / Guardado" */
+  --success: 113 23% 71%;
+  --success-foreground: 113 40% 20%;
+
+  /* warning: #F2C272 — naranja ocre "Pendiente / Alerta" */
+  --warning: 38 82% 70%;
+  --warning-foreground: 38 50% 20%;
+
+  /* ── 7. ESTRUCTURA: BORDES Y FOCOS ──────────────── */
+  /* border: #E0DCD0 — separadores cálidos discretos */
+  --border: 45 18% 85%;
+  /* input: borde específico para inputs */
+  --input: 45 18% 85%;
+  /* ring: halo de foco, usa el primary */
+  --ring: 39 100% 87%;
+
+  /* ── 8. RADIO ESTÁNDAR ───────────────────────────── */
+  --radius: 0.75rem;
+}
+
+/* ══════════════════════════════════════════════════════
+   🎨  TAILWIND v4 — @theme inline
+   Expone cada variable como clase de utilidad Tailwind.
+   ══════════════════════════════════════════════════════ */
+@theme inline {
+  /* ── Fondos / Texto ── */
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+
+  /* ── Card / Popover ── */
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+
+  /* ── Primary ── */
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+
+  /* ── Secondary ── */
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+
+  /* ── Muted ── */
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+
+  /* ── Accent ── */
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+
+  /* ── Destructive ── */
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+
+  /* ── Success ── */
+  --color-success: hsl(var(--success));
+  --color-success-foreground: hsl(var(--success-foreground));
+
+  /* ── Warning ── */
+  --color-warning: hsl(var(--warning));
+  --color-warning-foreground: hsl(var(--warning-foreground));
+
+  /* ── Borde / Input / Ring ── */
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  /* ── Tipografía ── */
+  --font-montserrat: var(--font-montserrat);
+
+  /* ── Border-radius desde variable ── */
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+}
+
+/* ══════════════════════════════════════════════════════
+   📐  ESTILOS BASE
+   ══════════════════════════════════════════════════════ */
+*,
+*::before,
+*::after {
+  border-color: hsl(var(--border));
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: var(--font-montserrat), system-ui, sans-serif;
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+/* Scrollbar personalizado tono cálido */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--border));
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(var(--muted-foreground) / 0.4);
+}
+
+/* Focus ring accesible */
+*:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ══════════════════════════════════════════════════════
+   🛠️  UTILIDADES DE COMPONENTE
+   ══════════════════════════════════════════════════════ */
+@layer utilities {
+
+  /* Glassmorphism — usa la surface card semitransparente */
+  .glass {
+    background: hsl(var(--card) / 0.75);
+    backdrop-filter: blur(12px);
+    border: 1px solid hsl(var(--border) / 0.6);
+  }
+
+  /* Superficie con elevación estándar */
+  .surface-elevated {
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+  }
+}
+
+/* ══════════════════════════════════════════════════════
+   🎬  KEYFRAMES
+   ══════════════════════════════════════════════════════ */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
