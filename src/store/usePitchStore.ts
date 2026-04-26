@@ -10,13 +10,17 @@ interface PitchState {
     isRightPanelOpen: boolean
     isLoading: boolean
     lastSaved: Date | null
+    clientOpportunities: Opportunity[]
 
     // Fetching
     fetchClients: () => Promise<void>
     fetchCatalog: () => Promise<void>
     loadOpportunity: (id: string) => Promise<void>
+    fetchClientOpportunities: (clientId: string) => Promise<void>
 
     // Mutations
+    resetCurrentOpportunity: () => void
+    setCurrentOpportunity: (opportunity: Opportunity) => void
     setClient: (client: Client | null) => void
     setDimension: (dimension: OpportunityDimension) => void
     addBlock: () => void
@@ -66,6 +70,7 @@ export const usePitchStore = create<PitchState>((set, get) => ({
     isRightPanelOpen: false,
     isLoading: false,
     lastSaved: null,
+    clientOpportunities: [],
 
     fetchClients: async () => {
         const supabase = createClient()
@@ -83,6 +88,48 @@ export const usePitchStore = create<PitchState>((set, get) => ({
         const supabase = createClient()
         const { data } = await supabase.from('opportunities').select('*, client:clients(*)').eq('id', id).single()
         if (data) set({ currentOpportunity: data })
+    },
+
+    fetchClientOpportunities: async (clientId) => {
+        const supabase = createClient()
+        const { data } = await supabase
+            .from('opportunities')
+            .select('*')
+            .eq('client_id', clientId)
+            .order('created_at', { ascending: false })
+        if (data) set({ clientOpportunities: data })
+    },
+
+    resetCurrentOpportunity: () => {
+        const clientId = get().currentOpportunity.client_id
+        const client = get().currentOpportunity.client
+        set({
+            currentOpportunity: {
+                client_id: clientId,
+                client: client,
+                status: 'discovery',
+                draft_jsonb: {
+                    blocks: [],
+                    selectedModules: [],
+                    infrastructureModel: 'external',
+                    selectedInfrastructureIds: [],
+                    totalCalculated: 0,
+                    totalCapex: 0,
+                    totalOpex: 0
+                },
+                discount_applied: 0,
+                meeting_notes: '',
+                internal_retro: ''
+            },
+            lastSaved: null
+        })
+    },
+
+    setCurrentOpportunity: (opportunity) => {
+        set({
+            currentOpportunity: opportunity,
+            lastSaved: new Date(opportunity.updated_at)
+        })
     },
 
     setClient: (client) => {
@@ -345,12 +392,18 @@ export const usePitchStore = create<PitchState>((set, get) => ({
 
     saveToSupabase: async () => {
         const { currentOpportunity } = get()
-        if (!currentOpportunity.client_id) return
+        if (!currentOpportunity.client_id) {
+            console.warn('Cannot save: No client selected')
+            return
+        }
 
         set({ isLoading: true })
         const supabase = createClient()
 
+        // Limpiar datos que no pertenecen a la tabla
         const { client, ...saveData } = currentOpportunity as any
+
+        console.log('Sincronizando Core Aura OS...', saveData)
 
         const { data, error } = await supabase
             .from('opportunities')
@@ -361,9 +414,12 @@ export const usePitchStore = create<PitchState>((set, get) => ({
             .select()
             .single()
 
-        if (!error) {
+        if (error) {
+            console.error('Error en Sincronización Core:', error.message, error.details)
+        } else {
+            console.log('Sincronización Exitosa:', data.id)
             set({
-                currentOpportunity: { ...currentOpportunity, id: data.id },
+                currentOpportunity: { ...currentOpportunity, ...data },
                 lastSaved: new Date()
             })
         }
