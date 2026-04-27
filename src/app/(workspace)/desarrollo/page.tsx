@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Users, Database, Calculator, Box, Settings, Cpu } from 'lucide-react'
+import { Users, Database, Calculator, Box, Settings, Cpu, FileText } from 'lucide-react'
 
 const spaces = [
     {
@@ -11,7 +11,14 @@ const spaces = [
                 description: 'CRM para administración de prospectos y socios.',
                 href: '/desarrollo/clientes',
                 icon: Users,
-                color: '#2f65ca',   // Azul legible sobre fondo claro
+                color: '#2f65ca',
+            },
+            {
+                title: 'Gestión de Leads',
+                description: 'Administración de oportunidades y despliegue del portal.',
+                href: '/desarrollo/leads',
+                icon: FileText,
+                color: '#10b981', // Esmeralda/Verde para leads
             },
         ],
     },
@@ -37,7 +44,7 @@ const spaces = [
                 description: 'Simulador de cotizaciones y márgenes operativos.',
                 href: '/desarrollo/calculadora',
                 icon: Calculator,
-                color: '#b05a10',   // Naranja tostado legible (era warning)
+                color: '#b05a10',
             },
         ],
     },

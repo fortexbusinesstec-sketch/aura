@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition, useMemo } from 'react'
-import { Plus, Tag, Layers, Trash2, Copy } from 'lucide-react'
+import { Plus, Tag, Layers, Trash2, Copy, FileText, Zap } from 'lucide-react'
 import { CatalogItem, CatalogCategory } from '@/types'
 import { Modal } from '@/components/ui/Modal'
 import { PageHeader } from '@/components/ui/PageHeader'
@@ -59,6 +59,14 @@ export function CatalogList({ initialItems }: { initialItems: CatalogItem[] }) {
             header: 'Descripción del Servicio',
             cell: info => <span className="font-bold text-foreground tracking-tight">{info.getValue()}</span>,
         }),
+        columnHelper.accessor('client_label', {
+            header: 'Label Cliente',
+            cell: info => <span className="text-[10px] font-medium text-muted-foreground italic">{info.getValue() || '-'}</span>,
+        }),
+        columnHelper.accessor('tech_bullet', {
+            header: 'Tech Bullet',
+            cell: info => <span className="text-[10px] font-medium text-muted-foreground">{info.getValue() || '-'}</span>,
+        }),
         columnHelper.accessor('base_price_pen', {
             header: 'Precio Base',
             meta: { align: 'right' },
@@ -78,6 +86,8 @@ export function CatalogList({ initialItems }: { initialItems: CatalogItem[] }) {
             name: formData.get('name') as string,
             category: selectedCategory as CatalogCategory,
             base_price_pen: Number(formData.get('price')),
+            client_label: formData.get('client_label') as string,
+            tech_bullet: formData.get('tech_bullet') as string,
         }
 
         if (!data.category) {
@@ -182,6 +192,31 @@ export function CatalogList({ initialItems }: { initialItems: CatalogItem[] }) {
                                 placeholder="0.00"
                                 className="w-full rounded-2xl border border-border bg-background pl-14 pr-4 py-4 text-lg text-foreground font-mono font-black outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all placeholder:text-muted-foreground/40"
                             />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-3">
+                            <label className="text-[11px] font-black uppercase text-muted-foreground tracking-[0.2em] ml-1">Etiqueta Cliente (PDF)</label>
+                            <div className="relative group">
+                                <FileText className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-foreground transition-colors" size={18} />
+                                <input
+                                    name="client_label"
+                                    placeholder="Ej. Arquitectura Escalable"
+                                    className="w-full rounded-2xl border border-border bg-background pl-12 pr-4 py-4 text-xs text-foreground outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all placeholder:text-muted-foreground/40 font-bold"
+                                />
+                            </div>
+                        </div>
+                        <div className="space-y-3">
+                            <label className="text-[11px] font-black uppercase text-muted-foreground tracking-[0.2em] ml-1">Tech Bullet (PDF)</label>
+                            <div className="relative group">
+                                <Zap className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-foreground transition-colors" size={18} />
+                                <input
+                                    name="tech_bullet"
+                                    placeholder="Ej. Next.js App Router"
+                                    className="w-full rounded-2xl border border-border bg-background pl-12 pr-4 py-4 text-xs text-foreground outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all placeholder:text-muted-foreground/40 font-bold"
+                                />
+                            </div>
                         </div>
                     </div>
 

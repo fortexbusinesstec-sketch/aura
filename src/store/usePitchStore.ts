@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { Client, CatalogItem, Opportunity, PitchDraft, OpportunityDimension, PitchBlock, SelectedModule } from '@/types'
+import { Client, CatalogItem, Opportunity, PitchDraft, OpportunityDimension, PitchBlock, SelectedModule, DiscoveryData, StrategyData, FinancialsData } from '@/types'
 import { createClient } from '@/utils/supabase/client'
 
 interface PitchState {
@@ -11,6 +11,7 @@ interface PitchState {
     isLoading: boolean
     lastSaved: Date | null
     clientOpportunities: Opportunity[]
+    saveResult: { success: boolean, message: string } | null
 
     // Fetching
     fetchClients: () => Promise<void>
@@ -39,13 +40,41 @@ interface PitchState {
     setRetro: (retro: string) => void
     setDiscount: (discount: number) => void
 
+    // Custom updates
+    updateCurrentOpportunity: (updates: Partial<Opportunity>) => void
+
     // UI State
+    updateDiscoveryData: (data: Partial<DiscoveryData>) => void
+    updateStrategyData: (data: Partial<StrategyData>) => void
+    updateFinancialsData: (data: Partial<FinancialsData>) => void
+    updateClientInfo: (data: any) => void
     togglePricePanel: (isOpen: boolean) => void
     toggleRightPanel: (isOpen: boolean) => void
 
     // Logic
     calculateTotal: () => void
-    saveToSupabase: () => Promise<void>
+    saveToSupabase: (showPopup?: boolean) => Promise<boolean>
+    saveClientToSupabase: () => Promise<boolean>
+    setSaveResult: (result: { success: boolean, message: string } | null) => void
+}
+
+const defaultDiscovery: DiscoveryData = {
+    pain_points: [],
+    urgency: '',
+    decision_maker: '',
+    budget_range: ''
+}
+
+const defaultStrategy: StrategyData = {
+    target_user: '',
+    key_message: '',
+    value_proposition: ''
+}
+
+const defaultFinancials: FinancialsData = {
+    roi_estimate: '',
+    revenue_potential: '',
+    payment_terms: ''
 }
 
 export const usePitchStore = create<PitchState>((set, get) => ({
@@ -64,13 +93,20 @@ export const usePitchStore = create<PitchState>((set, get) => ({
         },
         discount_applied: 0,
         meeting_notes: '',
-        internal_retro: ''
+        internal_retro: '',
+        discovery_jsonb: defaultDiscovery,
+        research_jsonb: {},
+        strategy_jsonb: defaultStrategy,
+        visual_direction_jsonb: {},
+        insights_jsonb: {},
+        financials_jsonb: defaultFinancials
     },
     isPricePanelOpen: false,
     isRightPanelOpen: false,
     isLoading: false,
     lastSaved: null,
     clientOpportunities: [],
+    saveResult: null,
 
     fetchClients: async () => {
         const supabase = createClient()
@@ -79,15 +115,48 @@ export const usePitchStore = create<PitchState>((set, get) => ({
     },
 
     fetchCatalog: async () => {
-        const supabase = createClient()
-        const { data } = await supabase.from('catalog_items').select('*').order('category')
+        const { data } = await createClient().from('catalog_items').select('*')
         if (data) set({ catalog: data })
     },
 
     loadOpportunity: async (id) => {
-        const supabase = createClient()
-        const { data } = await supabase.from('opportunities').select('*, client:clients(*)').eq('id', id).single()
-        if (data) set({ currentOpportunity: data })
+        set({ isLoading: true })
+        try {
+            const supabase = createClient()
+            const { data, error } = await supabase.from('opportunities').select('*, client:clients(*)').eq('id', id).single()
+
+            if (error) {
+                console.error('Error loading opportunity:', error)
+                return
+            }
+
+            if (data) {
+                const rawDiscovery = data.discovery_jsonb as any || {}
+                const rawStrategy = data.strategy_jsonb as any || {}
+                const rawFinancials = data.financials_jsonb as any || {}
+
+                set({
+                    currentOpportunity: {
+                        ...data,
+                        discovery_jsonb: {
+                            ...defaultDiscovery,
+                            ...rawDiscovery,
+                            pain_points: Array.isArray(rawDiscovery.pain_points) ? rawDiscovery.pain_points : []
+                        },
+                        strategy_jsonb: {
+                            ...defaultStrategy,
+                            ...rawStrategy
+                        },
+                        financials_jsonb: {
+                            ...defaultFinancials,
+                            ...rawFinancials
+                        }
+                    }
+                })
+            }
+        } finally {
+            set({ isLoading: false })
+        }
     },
 
     fetchClientOpportunities: async (clientId) => {
@@ -119,7 +188,13 @@ export const usePitchStore = create<PitchState>((set, get) => ({
                 },
                 discount_applied: 0,
                 meeting_notes: '',
-                internal_retro: ''
+                internal_retro: '',
+                discovery_jsonb: defaultDiscovery,
+                research_jsonb: {},
+                strategy_jsonb: defaultStrategy,
+                visual_direction_jsonb: {},
+                insights_jsonb: {},
+                financials_jsonb: defaultFinancials
             },
             lastSaved: null
         })
@@ -317,6 +392,42 @@ export const usePitchStore = create<PitchState>((set, get) => ({
         get().calculateTotal()
     },
 
+    updateCurrentOpportunity: (updates) => {
+        set((state) => ({
+            currentOpportunity: { ...state.currentOpportunity, ...updates }
+        }))
+    },
+
+    updateDiscoveryData: (data) => {
+        const { currentOpportunity } = get()
+        set({
+            currentOpportunity: {
+                ...currentOpportunity,
+                discovery_jsonb: { ...currentOpportunity.discovery_jsonb, ...data } as any
+            }
+        })
+    },
+
+    updateStrategyData: (data) => {
+        const { currentOpportunity } = get()
+        set({
+            currentOpportunity: {
+                ...currentOpportunity,
+                strategy_jsonb: { ...currentOpportunity.strategy_jsonb, ...data } as any
+            }
+        })
+    },
+
+    updateFinancialsData: (data) => {
+        const { currentOpportunity } = get()
+        set({
+            currentOpportunity: {
+                ...currentOpportunity,
+                financials_jsonb: { ...currentOpportunity.financials_jsonb, ...data } as any
+            }
+        })
+    },
+
     togglePricePanel: (isOpen) => {
         set({ isPricePanelOpen: isOpen })
         if (isOpen) get().calculateTotal()
@@ -390,39 +501,98 @@ export const usePitchStore = create<PitchState>((set, get) => ({
         }))
     },
 
-    saveToSupabase: async () => {
-        const { currentOpportunity } = get()
+    saveToSupabase: async (showPopup = false) => {
+        const { currentOpportunity, setSaveResult } = get()
         if (!currentOpportunity.client_id) {
-            console.warn('Cannot save: No client selected')
-            return
+            if (showPopup) setSaveResult({ success: false, message: 'Debe seleccionar un Cliente primero.' })
+            return false
         }
 
         set({ isLoading: true })
         const supabase = createClient()
 
-        // Limpiar datos que no pertenecen a la tabla
-        const { client, ...saveData } = currentOpportunity as any
+        const rawData = { ...currentOpportunity }
+        delete (rawData as any).client
 
-        console.log('Sincronizando Core Aura OS...', saveData)
+        if (rawData.id === "" || rawData.id === undefined) {
+            delete rawData.id
+        }
+
+        const saveData = {
+            ...rawData,
+            updated_at: new Date().toISOString()
+        }
 
         const { data, error } = await supabase
             .from('opportunities')
-            .upsert({
-                ...saveData,
-                updated_at: new Date().toISOString()
-            })
+            .upsert(saveData)
             .select()
             .single()
 
         if (error) {
-            console.error('Error en Sincronización Core:', error.message, error.details)
+            console.error('Error en Sincronización Core:', error)
+            setSaveResult({
+                success: false,
+                message: `Error al guardar: ${error.message}${error.details ? ' - ' + error.details : ''}`
+            })
+            set({ isLoading: false })
+            return false
         } else {
             console.log('Sincronización Exitosa:', data.id)
             set({
                 currentOpportunity: { ...currentOpportunity, ...data },
                 lastSaved: new Date()
             })
+            if (showPopup) {
+                setSaveResult({ success: true, message: 'La oportunidad ha sido registrada exitosamente en el Core.' })
+            }
+            set({ isLoading: false })
+            return true
         }
-        set({ isLoading: false })
-    }
+    },
+
+    updateClientInfo: (data) => {
+        const { currentOpportunity } = get()
+        if (!currentOpportunity || !currentOpportunity.client) return
+
+        set({
+            currentOpportunity: {
+                ...currentOpportunity,
+                client: {
+                    ...(currentOpportunity.client as any),
+                    ...data
+                }
+            }
+        })
+    },
+
+    saveClientToSupabase: async () => {
+        const { currentOpportunity } = get()
+        if (!currentOpportunity || !currentOpportunity.client) return false
+
+        const supabase = createClient()
+        const client = currentOpportunity.client
+
+        try {
+            const { error } = await supabase
+                .from('clients')
+                .update({
+                    razon_social: client.razon_social,
+                    ruc: client.ruc,
+                    persona_contacto: client.persona_contacto,
+                    email: client.email,
+                    client_profile_jsonb: client.client_profile_jsonb,
+                    client_insights_jsonb: client.client_insights_jsonb
+                })
+                .eq('id', client.id)
+
+            if (error) throw error
+            return true
+        } catch (error) {
+            console.error('Error saving client:', error)
+            return false
+        }
+    },
+
+    setSaveResult: (saveResult) => set({ saveResult })
 }))

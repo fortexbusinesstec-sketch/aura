@@ -61,5 +61,21 @@ export const OpportunityRepository = {
             .single()
 
         return { data, error }
+    },
+
+    async getByClientId(clientId: string): Promise<Opportunity[]> {
+        const supabase = await createClient()
+        const { data, error } = await supabase
+            .from('opportunities')
+            .select('*')
+            .eq('client_id', clientId)
+            .order('created_at', { ascending: false })
+
+        if (error) {
+            console.error('Error fetching opportunities by clientId:', error)
+            return []
+        }
+
+        return data as Opportunity[]
     }
 }

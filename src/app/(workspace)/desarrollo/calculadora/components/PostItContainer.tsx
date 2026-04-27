@@ -272,7 +272,7 @@ export function PostItContainer() {
                 <PostItItem title="Gestión de Oportunidad" icon={<Zap size={18} />}>
                     <div className="space-y-4">
                         <button
-                            onClick={saveToSupabase}
+                            onClick={() => saveToSupabase(true)}
                             disabled={isLoading}
                             className="w-full relative group p-4 bg-primary rounded-2xl overflow-hidden transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                         >

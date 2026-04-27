@@ -2,32 +2,14 @@
 
 import { useState, useTransition, useMemo } from 'react'
 import { createColumnHelper } from '@tanstack/react-table'
-import { Plus, UserPlus, Phone, Mail, Building2, Hash } from 'lucide-react'
+import Link from 'next/link'
+import { Plus, UserPlus, Phone, Mail, Building2, Hash, ExternalLink } from 'lucide-react'
 import { Client, NewClient } from '@/types'
 import { Modal } from '@/components/ui/Modal'
 import { FtxDatagrid } from '@/components/ui/FtxDatagrid'
 import { createClientAction } from './actions'
 
 const columnHelper = createColumnHelper<Client>()
-
-const columns = [
-    columnHelper.accessor('razon_social', {
-        header: 'Razón Social',
-        cell: info => <span className="font-semibold text-foreground">{info.getValue() as React.ReactNode}</span>,
-    }),
-    columnHelper.accessor('ruc', {
-        header: 'RUC',
-        cell: info => <span className="font-mono text-foreground">{info.getValue()}</span>,
-    }),
-    columnHelper.accessor('persona_contacto', {
-        header: 'Contacto',
-        cell: info => info.getValue(),
-    }),
-    columnHelper.accessor('email', {
-        header: 'Email',
-        cell: info => <span className="text-foreground/70">{info.getValue()}</span>,
-    }),
-]
 
 export function ClientTable({ initialData }: { initialData: Client[] }) {
     const [isModalOpen, setIsModalOpen] = useState(false)
@@ -50,6 +32,19 @@ export function ClientTable({ initialData }: { initialData: Client[] }) {
             header: 'Email',
             cell: info => <span className="text-foreground/70">{info.getValue()}</span>,
         }),
+        columnHelper.display({
+            id: 'actions',
+            header: 'Acciones',
+            cell: info => (
+                <Link
+                    href={`/desarrollo/clientes/${info.row.original.id}`}
+                    className="flex items-center gap-2 rounded-lg bg-secondary/50 px-3 py-1.5 text-xs font-bold text-foreground/70 transition-all hover:bg-primary hover:text-primary-foreground shadow-sm"
+                >
+                    <ExternalLink size={14} />
+                    Detalle
+                </Link>
+            )
+        })
     ], [])
 
     const handleAdd = async (e: React.FormEvent<HTMLFormElement>) => {

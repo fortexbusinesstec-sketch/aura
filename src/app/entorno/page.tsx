@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Terminal, FlaskConical, LineChart } from 'lucide-react'
+import { Terminal, FlaskConical, LineChart, Box } from 'lucide-react'
 
 const environments = [
     {
@@ -26,6 +26,14 @@ const environments = [
         color: '#7dcfff', // Cyan
         glowClass: 'hover:shadow-[0_0_30px_rgba(125,207,255,0.3)] hover:border-accent/50',
     },
+    {
+        title: 'Product',
+        description: 'Gestión de ciclo de vida y diseño de productos.',
+        icon: Box,
+        href: '/producto',
+        color: '#73daca', // Emerald
+        glowClass: 'hover:shadow-[0_0_30px_rgba(115,218,202,0.3)] hover:border-primary/50',
+    },
 ]
 
 export default function EntornoPage() {
@@ -45,7 +53,7 @@ export default function EntornoPage() {
                     <p className="text-foreground/50 text-lg uppercase tracking-widest font-medium">Sincronización de Conciencia Operativa</p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                     {environments.map((env) => {
                         const Icon = env.icon
                         return (

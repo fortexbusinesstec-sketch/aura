@@ -22,7 +22,7 @@ export function ClientSelector() {
     return (
         <div className="relative group max-w-md">
             <label className="text-[11px] font-black uppercase text-foreground/60 tracking-[0.2em] ml-1 mb-3 block">
-                Socio Estratégico <span className="text-primary/60">(Cliente)</span>
+                Socio Estratégico <span className="text-sky-950/60">(Cliente)</span>
             </label>
 
             <div className={`relative flex items-center transition-all duration-300 rounded-2xl border ${isOpen ? 'bg-card border-primary/50 ring-4 ring-primary/5' : 'bg-card/40 border-border hover:border-primary/30'
@@ -76,7 +76,7 @@ export function ClientSelector() {
                                             <span className="text-sm font-black text-foreground tracking-tight transition-colors uppercase">
                                                 {client.razon_social}
                                             </span>
-                                            {selectedClient?.id === client.id && <Check size={14} className="text-primary" />}
+                                            {selectedClient?.id === client.id && <Check size={14} className="text-sky-950" />}
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <span className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest">RUC:</span>

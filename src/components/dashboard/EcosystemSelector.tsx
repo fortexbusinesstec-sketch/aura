@@ -1,13 +1,14 @@
 'use client'
 
 import { useRouter, usePathname } from 'next/navigation'
-import { ChevronDown, Globe, Terminal, FlaskConical, LineChart } from 'lucide-react'
+import { ChevronDown, Globe, Terminal, FlaskConical, LineChart, Package } from 'lucide-react'
 import { useState, useMemo } from 'react'
 
 const ecosystems = [
     { id: 'desarrollo', label: 'Developer', icon: Terminal, href: '/desarrollo' },
     { id: 'laboratorio', label: 'Laboratory', icon: FlaskConical, href: '/laboratorio' },
     { id: 'finanzas', label: 'Finance', icon: LineChart, href: '/finanzas' },
+    { id: 'producto', label: 'Product', icon: Package, href: '/producto' },
 ]
 
 export function EcosystemSelector() {

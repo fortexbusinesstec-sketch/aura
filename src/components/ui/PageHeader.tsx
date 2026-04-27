@@ -24,7 +24,7 @@ export function PageHeader({ title, subtitle, action, showBack = true }: PageHea
                         <h1 className="text-5xl font-black text-foreground italic uppercase tracking-tighter leading-none">
                             {title}
                         </h1>
-                        <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-[0.4em] pl-1">
+                        <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-[0.1em] pl-1">
                             {subtitle}
                         </p>
                     </div>

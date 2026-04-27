@@ -12,6 +12,8 @@ export const metadata: Metadata = {
   description: "Sistema interno B2B/SaaS para gestión interestelar.",
 };
 
+import { Toaster } from 'sonner'
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -21,6 +23,7 @@ export default function RootLayout({
     <html lang="es" className={`${montserrat.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col font-montserrat">
         {children}
+        <Toaster position="top-right" expand={true} richColors />
       </body>
     </html>
   );

@@ -11,7 +11,11 @@ export default function LoginPage() {
 
     useEffect(() => {
         if (state?.success) {
-            router.push('/entorno')
+            // Ensure we are on the client and router is ready
+            const timer = setTimeout(() => {
+                router.push('/entorno')
+            }, 0)
+            return () => clearTimeout(timer)
         }
     }, [state, router])
 

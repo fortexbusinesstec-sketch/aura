@@ -9,7 +9,8 @@ import { CrossModuleSelector } from './CrossModuleSelector'
 import { InfrastructureSelector } from './InfrastructureSelector'
 import { PostItContainer } from './PostItContainer'
 import { debounce } from '@/utils/debounce'
-import { Calculator, Cloud, Save, CheckCircle2, Loader2, ChevronLeft } from 'lucide-react'
+import { Modal } from '@/components/ui/Modal'
+import { Calculator, Cloud, Save, CheckCircle2, Loader2, ChevronLeft, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { PageHeader } from '@/components/ui/PageHeader'
 
@@ -26,7 +27,9 @@ export function PitchTerminalContainer() {
         clientOpportunities,
         fetchClientOpportunities,
         resetCurrentOpportunity,
-        setCurrentOpportunity
+        setCurrentOpportunity,
+        saveResult,
+        setSaveResult
     } = usePitchStore()
 
     const [activeTab, setActiveTab] = React.useState<'new' | 'edit'>('new')
@@ -47,9 +50,27 @@ export function PitchTerminalContainer() {
         [saveToSupabase]
     )
 
+    const lastSavedDraftRef = React.useRef<string>('')
+
     useEffect(() => {
-        if (currentOpportunity.client_id) {
-            debouncedSave()
+        // Al cargar o cambiar de oportunidad, inicializar el ref para evitar auto-save inmediato
+        if (currentOpportunity.id) {
+            lastSavedDraftRef.current = JSON.stringify(currentOpportunity.draft_jsonb)
+        } else {
+            lastSavedDraftRef.current = ''
+        }
+    }, [currentOpportunity.id])
+
+    useEffect(() => {
+        // Auto-save solo si ya existe el ID (estamos editando)
+        if (currentOpportunity.client_id && currentOpportunity.id) {
+            const currentDraftStr = JSON.stringify(currentOpportunity.draft_jsonb)
+
+            // Solo disparar si el borrador ha cambiado realmente
+            if (currentDraftStr !== lastSavedDraftRef.current) {
+                debouncedSave()
+                lastSavedDraftRef.current = currentDraftStr
+            }
         }
     }, [currentOpportunity, debouncedSave])
 
@@ -60,15 +81,15 @@ export function PitchTerminalContainer() {
     }, [currentOpportunity.client_id, fetchClientOpportunities])
 
     return (
-        <div className="fixed inset-0 bg-background flex overflow-hidden pt-16 selection:bg-primary/30 selection:text-primary">
+        <div className="fixed inset-0 bg-background flex overflow-hidden pt-16 selection:bg-primary/30 selection:text-sky-950">
             {/* Action Bar (Top Floating) */}
             <div className="absolute top-20 right-8 z-50 flex items-center gap-4">
                 {(isLoading || lastSaved) && (
                     <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-card/40 border border-white/5 backdrop-blur-md">
                         {isLoading ? (
-                            <Loader2 size={12} className="text-primary animate-spin" />
+                            <Loader2 size={12} className="text-sky-950 animate-spin" />
                         ) : (
-                            <CheckCircle2 size={12} className="text-primary" />
+                            <CheckCircle2 size={12} className="text-sky-950" />
                         )}
                         <span className="text-[10px] font-black uppercase tracking-widest text-foreground/60">
                             {isLoading ? 'Sincronizando...' : lastSaved ? `Sincronizado ${lastSaved.toLocaleTimeString()}` : ''}
@@ -212,6 +233,35 @@ export function PitchTerminalContainer() {
             <div className={`h-full bg-card border-l border-border transition-all duration-500 ease-in-out ${isRightPanelOpen ? 'w-full md:w-[35%] lg:w-[30%]' : 'w-0 opacity-0 pointer-events-none'}`}>
                 <PostItContainer />
             </div>
+
+            {/* Notification Modal */}
+            <Modal
+                isOpen={!!saveResult}
+                onClose={() => setSaveResult(null)}
+                title={saveResult?.success ? "Protocolo Exitoso" : "Falla en el Sistema"}
+            >
+                <div className="flex flex-col items-center text-center gap-6">
+                    <div className={`w-16 h-16 rounded-full flex items-center justify-center ${saveResult?.success ? 'bg-success/20 text-success' : 'bg-destructive/20 text-destructive'}`}>
+                        {saveResult?.success ? <CheckCircle2 size={32} /> : <X size={32} />}
+                    </div>
+                    <div className="space-y-2">
+                        <p className="text-sm font-bold text-foreground">
+                            {saveResult?.message}
+                        </p>
+                        {saveResult?.success && (
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-black">
+                                El Core ha sido actualizado correctamente
+                            </p>
+                        )}
+                    </div>
+                    <button
+                        onClick={() => setSaveResult(null)}
+                        className={`w-full py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 ${saveResult?.success ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'bg-destructive text-destructive-foreground hover:bg-destructive/90'}`}
+                    >
+                        Entendido
+                    </button>
+                </div>
+            </Modal>
 
             <style jsx global>{`
                 .custom-scrollbar::-webkit-scrollbar {

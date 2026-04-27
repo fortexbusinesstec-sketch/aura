@@ -7,8 +7,6 @@ export default async function AuraMasterPage() {
 
     return (
         <div className="space-y-8">
-            <BackButton />
-
             <CatalogList initialItems={items} />
         </div>
     )
