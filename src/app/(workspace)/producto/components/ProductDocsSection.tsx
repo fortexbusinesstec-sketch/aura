@@ -205,62 +205,56 @@ export function ProductDocsSection({ productId, docs }: Props) {
             {/* MODAL CREACIÓN / EDICIÓN FULL SCREEN */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-[200] bg-background flex flex-col animate-in slide-in-from-bottom duration-500">
-                    <div className="h-20 border-b border-border/40 flex items-center justify-between px-8 bg-card/50 backdrop-blur-md">
-                        <div className="flex items-center gap-6">
+                    <div className="min-h-[80px] h-auto py-4 md:py-0 border-b border-border/40 flex flex-wrap md:flex-nowrap items-center justify-between px-4 md:px-8 bg-card/50 backdrop-blur-md gap-4">
+                        <div className="flex items-center gap-2 md:gap-6 min-w-0">
                             <button
                                 onClick={() => setIsModalOpen(false)}
-                                className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-black transition-colors px-3 py-2 rounded-xl hover:bg-secondary/40"
+                                className="flex-shrink-0 flex items-center gap-1 md:gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-black transition-colors px-2 md:px-3 py-2 rounded-xl hover:bg-secondary/40"
                             >
-                                <ArrowLeft size={16} /> Volver
+                                <ArrowLeft size={16} /> <span className="hidden sm:inline">Volver</span>
                             </button>
-                            <div className="w-[1px] h-8 bg-border/40" />
-                            <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 rounded-2xl bg-secondary flex items-center justify-center border border-border/20 shadow-inner">
+                            <div className="w-[1px] h-8 bg-border/40 hidden sm:block flex-shrink-0" />
+                            <div className="flex items-center gap-3 md:gap-4 overflow-hidden min-w-0">
+                                <div className="hidden sm:flex flex-shrink-0 w-10 h-10 rounded-2xl bg-secondary items-center justify-center border border-border/20 shadow-inner">
                                     <FileText size={20} className="text-black" />
                                 </div>
-                                <div>
-                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-black/60 mb-0.5">Gestión de Documentación Técnica</p>
-                                    <h2 className="text-lg font-black uppercase tracking-tighter text-foreground">
+                                <div className="min-w-0">
+                                    <p className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] text-black/60 mb-0.5 truncate">Gestión de Documentos</p>
+                                    <h2 className="text-sm md:text-lg font-black uppercase tracking-tighter text-foreground truncate max-w-[200px] sm:max-w-xs md:max-w-full">
                                         {formData.title || 'Registrar Nuevo Fragmento'}
                                     </h2>
                                 </div>
                             </div>
                         </div>
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center justify-end gap-2 md:gap-4 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 hide-scrollbar flex-shrink-0">
                             <button
                                 onClick={() => setShowPreview(!showPreview)}
-                                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${showPreview ? 'bg-secondary text-foreground' : 'bg-primary !text-black shadow-lg shadow-primary/20'
+                                className={`flex-shrink-0 flex items-center gap-2 px-3 md:px-4 py-2.5 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all ${showPreview ? 'bg-secondary text-foreground' : 'bg-primary !text-black shadow-lg shadow-primary/20'
                                     }`}
                             >
-                                {showPreview ? <><EyeOff size={14} /> Ocultar Preview</> : <><Eye size={14} /> Mostrar Preview</>}
+                                {showPreview ? <><EyeOff size={14} /> <span className="hidden sm:inline">Ocultar Preview</span></> : <><Eye size={14} /> <span className="hidden sm:inline">Mostrar Preview</span></>}
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setIsModalOpen(false)}
-                                className="px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:bg-secondary transition-all"
+                                className="hidden sm:block flex-shrink-0 px-4 py-2.5 md:px-6 md:py-3 rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:bg-secondary transition-all"
                             >
                                 Cancelar
                             </button>
                             <button
                                 onClick={() => handleSubmit()}
                                 disabled={isSaving || !formData.title || !formData.content_md}
-                                className="flex items-center gap-2 px-8 py-3 rounded-xl bg-primary !text-black text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl disabled:opacity-50 disabled:scale-100"
+                                className="flex-shrink-0 flex items-center gap-2 px-4 md:px-8 py-2.5 md:py-3 rounded-xl bg-primary !text-black text-[9px] md:text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl disabled:opacity-50 disabled:scale-100"
                             >
-                                {isSaving ? 'Guardando...' : <><Save size={16} /> Guardar Documento</>}
-                            </button>
-                            <button
-                                onClick={() => setIsModalOpen(false)}
-                                className="w-10 h-10 flex items-center justify-center rounded-xl bg-secondary text-muted-foreground hover:text-foreground transition-all"
-                            >
-                                <X size={20} />
+                                {isSaving ? 'Guardando...' : <><Save size={16} /> <span className="hidden sm:inline">Guardar Documento</span><span className="sm:hidden">Guardar</span></>}
                             </button>
                         </div>
                     </div>
 
                     {/* Split Layout Body */}
-                    <div className="flex-grow flex overflow-hidden">
+                    <div className="flex-grow flex flex-col lg:flex-row overflow-hidden">
                         {/* LEFT: FORM/EDITOR */}
-                        <div className={`${showPreview ? 'w-[45%]' : 'w-full'} h-full border-r border-border/20 flex flex-col p-10 space-y-8 overflow-y-auto bg-card/20 transition-all duration-500`}>
+                        <div className={`${showPreview ? 'hidden lg:flex w-full lg:w-[45%]' : 'flex w-full'} h-full border-b lg:border-b-0 lg:border-r border-border/20 flex-col p-6 md:p-10 space-y-8 overflow-y-auto bg-card/20 transition-all duration-500`}>
                             <div className="space-y-6 max-w-5xl mx-auto w-full">
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black uppercase tracking-widest text-black/60 px-1">Título del Fragmento</label>
@@ -339,18 +333,18 @@ export function ProductDocsSection({ productId, docs }: Props) {
 
                         {/* RIGHT: PREVIEW */}
                         {showPreview && (
-                            <div className="flex-grow h-full bg-background overflow-y-auto p-12 lg:p-20 relative animate-in slide-in-from-right duration-500">
+                            <div className="flex-grow w-full lg:w-auto h-full bg-background overflow-y-auto p-4 sm:p-8 md:p-12 lg:p-20 relative animate-in slide-in-from-right duration-500">
                                 {/* Paper Effect */}
-                                <div className="max-w-4xl mx-auto bg-card border border-border/20 shadow-2xl p-16 min-h-[140%] rounded-sm relative overflow-hidden">
+                                <div className="max-w-4xl mx-auto bg-card border border-border/20 shadow-2xl p-6 sm:p-10 md:p-16 min-h-full lg:min-h-[140%] rounded-sm relative overflow-hidden">
                                     <div className="absolute top-0 left-0 w-full h-1.5 bg-black/20" />
 
-                                    <div className="flex items-center justify-between mb-12 opacity-40 text-black font-black">
-                                        <span className="text-[10px] uppercase tracking-[0.3em]">Aura Technical Asset</span>
-                                        <span className="text-[10px] uppercase tracking-[0.3em]">{formData.version_tag}</span>
+                                    <div className="flex items-center justify-between mb-8 md:mb-12 opacity-40 text-black font-black">
+                                        <span className="text-[8px] md:text-[10px] uppercase tracking-[0.3em]">Aura Technical Asset</span>
+                                        <span className="text-[8px] md:text-[10px] uppercase tracking-[0.3em]">{formData.version_tag}</span>
                                     </div>
 
-                                    <h1 className="text-4xl font-black uppercase tracking-tighter text-foreground mb-4 leading-tight">{formData.title || 'Título del Fragmento'}</h1>
-                                    <div className="flex items-center gap-4 mb-16 text-black/60 border-b border-border/20 pb-8">
+                                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-black uppercase tracking-tighter text-foreground mb-4 leading-tight break-words">{formData.title || 'Título del Fragmento'}</h1>
+                                    <div className="flex flex-wrap items-center gap-2 md:gap-4 mb-10 md:mb-16 text-black/60 border-b border-border/20 pb-6 md:pb-8">
                                         <span className="text-[11px] font-black uppercase tracking-widest bg-black/5 px-3 py-1 rounded-md border border-black/10 text-black">{formData.doc_type}</span>
                                         <div className="w-1 h-1 rounded-full bg-black/20" />
                                         <span className="text-[11px] font-bold">PROYECTO: {productId.slice(0, 8)}</span>
@@ -363,8 +357,8 @@ export function ProductDocsSection({ productId, docs }: Props) {
                                                 remarkPlugins={[remarkGfm, remarkBreaks]}
                                                 rehypePlugins={[rehypeHighlight]}
                                                 components={{
-                                                    h1: ({ children }) => <h1 className="text-4xl font-black uppercase tracking-tighter text-foreground mt-10 mb-4 leading-tight border-b border-border/20 pb-4">{children}</h1>,
-                                                    h2: ({ children }) => <h2 className="text-2xl font-black uppercase tracking-tight text-foreground mt-8 mb-3 leading-snug">{children}</h2>,
+                                                    h1: ({ children }) => <h1 className="text-3xl md:text-4xl font-black uppercase tracking-tighter text-foreground mt-8 md:mt-10 mb-4 leading-tight border-b border-border/20 pb-4 break-words">{children}</h1>,
+                                                    h2: ({ children }) => <h2 className="text-xl md:text-2xl font-black uppercase tracking-tight text-foreground mt-6 md:mt-8 mb-3 leading-snug break-words">{children}</h2>,
                                                     h3: ({ children }) => <h3 className="text-lg font-bold uppercase tracking-wide text-foreground/90 mt-6 mb-2">{children}</h3>,
                                                     h4: ({ children }) => <h4 className="text-base font-bold text-foreground/80 mt-4 mb-1">{children}</h4>,
                                                     p: ({ children }) => <p className="text-base text-foreground/75 leading-relaxed my-3">{children}</p>,
