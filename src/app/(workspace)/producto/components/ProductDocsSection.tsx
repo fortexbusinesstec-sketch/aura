@@ -5,7 +5,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import remarkBreaks from 'remark-breaks'
 import rehypeHighlight from 'rehype-highlight'
-import 'highlight.js/styles/github-dark.css'
+import 'highlight.js/styles/github.css'
 import { Card } from '@/components/ui/Card'
 import {
     Plus, X, ShieldCheck, Database, Cpu, BookOpen, FileText,
@@ -369,10 +369,10 @@ export function ProductDocsSection({ productId, docs }: Props) {
                                                     code: ({ className, children, ...props }: any) => {
                                                         const isInline = !className
                                                         return isInline
-                                                            ? <code className="text-sky-600 bg-slate-100 dark:bg-slate-900 dark:text-sky-400 px-1.5 py-0.5 rounded text-[13px] font-mono">{children}</code>
+                                                            ? <code className="text-black bg-yellow-100/60 border border-yellow-200/50 px-1.5 py-0.5 rounded text-[13px] font-mono">{children}</code>
                                                             : <code className={`${className ?? ''} font-mono text-sm`} {...props}>{children}</code>
                                                     },
-                                                    pre: ({ children }) => <pre className="bg-[#1e1e2e] border border-black/10 rounded-2xl p-6 overflow-x-auto my-6 shadow-2xl text-sm leading-relaxed">{children}</pre>,
+                                                    pre: ({ children }) => <pre className="bg-yellow-50 border border-yellow-200/60 rounded-2xl p-6 overflow-x-auto my-6 text-sm leading-relaxed shadow-sm">{children}</pre>,
                                                     table: ({ children }) => <div className="overflow-x-auto my-6"><table className="w-full text-sm border-collapse">{children}</table></div>,
                                                     th: ({ children }) => <th className="text-left px-4 py-2 bg-black/5 border border-border/20 font-black uppercase text-xs tracking-widest text-foreground">{children}</th>,
                                                     td: ({ children }) => <td className="px-4 py-2 border border-border/20 text-foreground/75">{children}</td>,
