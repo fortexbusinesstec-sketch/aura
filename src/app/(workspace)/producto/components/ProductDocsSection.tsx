@@ -12,7 +12,7 @@ import {
     History, ExternalLink, Save, Eye, EyeOff, Maximize2, Layers
 } from 'lucide-react'
 import { ProductDocumentation, DocFragmentType } from '@/types'
-import { createProductDocumentationAction } from '../actions'
+import { createProductDocumentationAction, updateProductDocumentationAction } from '../actions'
 import { toast } from 'sonner'
 import { ArrowLeft } from 'lucide-react'
 
@@ -60,6 +60,7 @@ export function ProductDocsSection({ productId, docs }: Props) {
     const [showPreview, setShowPreview] = useState(true)
     const [isSaving, setIsSaving] = useState(false)
     const [formData, setFormData] = useState({
+        id: undefined as string | undefined,
         title: '',
         doc_type: 'business_logic' as DocFragmentType,
         content_md: '',
@@ -95,15 +96,25 @@ export function ProductDocsSection({ productId, docs }: Props) {
 
         setIsSaving(true)
         try {
-            const result = await createProductDocumentationAction({
-                ...formData,
-                product_id: productId,
-            })
+            const isUpdate = !!formData.id
+            const result = isUpdate
+                ? await updateProductDocumentationAction(formData.id!, {
+                    title: formData.title,
+                    doc_type: formData.doc_type,
+                    content_md: formData.content_md,
+                    version_tag: formData.version_tag,
+                    product_id: productId
+                })
+                : await createProductDocumentationAction({
+                    ...formData,
+                    product_id: productId,
+                })
 
             if (result?.success) {
-                toast.success('Documento guardado con éxito.')
+                toast.success(isUpdate ? 'Documento actualizado con éxito.' : 'Documento guardado con éxito.')
                 setIsModalOpen(false)
                 setFormData({
+                    id: undefined,
                     title: '',
                     doc_type: 'business_logic',
                     content_md: '',
@@ -133,7 +144,7 @@ export function ProductDocsSection({ productId, docs }: Props) {
                     </span>
                     <button
                         onClick={() => {
-                            setFormData({ title: '', doc_type: 'business_logic', content_md: '', version_tag: 'v1.0.0' })
+                            setFormData({ id: undefined, title: '', doc_type: 'business_logic', content_md: '', version_tag: 'v1.0.0' })
                             setIsModalOpen(true)
                         }}
                         className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary !text-black text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg"
@@ -157,6 +168,7 @@ export function ProductDocsSection({ productId, docs }: Props) {
                                 key={doc.id}
                                 onClick={() => {
                                     setFormData({
+                                        id: doc.id,
                                         title: doc.title,
                                         doc_type: doc.doc_type,
                                         content_md: doc.content_md,

@@ -14,6 +14,17 @@ export async function createProductDocumentationAction(data: Partial<ProductDocu
     return { success: false, data: null }
 }
 
+export async function updateProductDocumentationAction(id: string, data: Partial<ProductDocumentation>) {
+    const result = await ProductRepository.updateDocumentation(id, data)
+
+    if (result) {
+        revalidatePath(`/producto/${data.product_id}`)
+        return { success: true, data: result }
+    }
+
+    return { success: false, data: null }
+}
+
 export async function getProductProjectsAction(): Promise<ProductProject[]> {
     return ProductRepository.getAll()
 }

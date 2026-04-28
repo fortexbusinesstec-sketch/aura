@@ -99,4 +99,21 @@ export class ProductRepository {
 
         return data as ProductDocumentation
     }
+
+    static async updateDocumentation(id: string, doc: Partial<ProductDocumentation>): Promise<ProductDocumentation | null> {
+        const supabase = await createClient()
+        const { data, error } = await supabase
+            .from('product_documentation')
+            .update({ ...doc, updated_at: new Date().toISOString() })
+            .eq('id', id)
+            .select()
+            .single()
+
+        if (error) {
+            console.error('Error updating product documentation:', error)
+            return null
+        }
+
+        return data as ProductDocumentation
+    }
 }
