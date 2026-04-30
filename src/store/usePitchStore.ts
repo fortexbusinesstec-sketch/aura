@@ -476,7 +476,7 @@ export const usePitchStore = create<PitchState>((set, get) => ({
         draft.selectedInfrastructureIds.forEach(id => {
             const item = catalog.find(i => i.id === id)
             if (item) {
-                if (item.category === 'hosting_internal') {
+                if (item.category === 'hosting_internal' || item.category === 'hosting_external') {
                     subtotalOpex += item.base_price_pen
                 } else {
                     subtotalCapex += item.base_price_pen
@@ -502,6 +502,7 @@ export const usePitchStore = create<PitchState>((set, get) => ({
     },
 
     saveToSupabase: async (showPopup = false) => {
+        get().calculateTotal()
         const { currentOpportunity, setSaveResult } = get()
         if (!currentOpportunity.client_id) {
             if (showPopup) setSaveResult({ success: false, message: 'Debe seleccionar un Cliente primero.' })
@@ -582,7 +583,8 @@ export const usePitchStore = create<PitchState>((set, get) => ({
                     persona_contacto: client.persona_contacto,
                     email: client.email,
                     client_profile_jsonb: client.client_profile_jsonb,
-                    client_insights_jsonb: client.client_insights_jsonb
+                    client_insights_jsonb: client.client_insights_jsonb,
+                    pin_code: client.pin_code
                 })
                 .eq('id', client.id)
 

@@ -1,6 +1,5 @@
 import { CatalogRepository } from '@/lib/repositories/CatalogRepository'
-import { CatalogList } from '@/app/(workspace)/desarrollo/master/CatalogList'
-import { BackButton } from '@/components/ui/BackButton'
+import { CatalogList } from './CatalogList'
 
 export default async function AuraMasterPage() {
     const items = await CatalogRepository.getAll()

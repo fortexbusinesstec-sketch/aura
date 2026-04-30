@@ -7,13 +7,11 @@ import {
     DollarSign,
     MessageSquare,
     History,
-    Milestone,
     Zap,
-    Clock,
     TrendingUp,
     FileCheck2,
     Loader2,
-    X
+    X,
 } from 'lucide-react'
 
 export function PostItContainer() {
@@ -31,31 +29,6 @@ export function PostItContainer() {
     } = usePitchStore()
 
     const draft = currentOpportunity.draft_jsonb!
-    const blocksCount = draft.blocks.length
-
-    // Lógica de Roadmap Estimado
-    const estimatedWeeks = useMemo(() => {
-        let weeks = 1 // Base
-        weeks += Math.floor(blocksCount / 2) * 0.5
-
-        const isLanding = currentOpportunity.dimension === 'landing'
-
-        if (isLanding) {
-            const hasComplex = draft.blocks.some(b => {
-                const complexity = catalog.find(i => i.id === b.complexity_id)
-                return complexity?.name.toLowerCase().includes('complejo') || complexity?.name.toLowerCase().includes('105')
-            })
-            if (hasComplex) weeks += 0.5
-        } else {
-            const hasImmersive = draft.blocks.some(b => {
-                const visual = catalog.find(i => i.id === b.visual_level_id)
-                return visual?.name.toLowerCase().includes('inmersivo')
-            })
-            if (hasImmersive) weeks += 1
-        }
-
-        return weeks
-    }, [blocksCount, draft.blocks, catalog, currentOpportunity.dimension])
 
     // Desglose de precios
     const priceBreakdown = useMemo(() => {
@@ -122,7 +95,7 @@ export function PostItContainer() {
             <div className="flex items-center justify-between p-8 border-b border-border">
                 <div className="flex items-center gap-3">
                     <TrendingUp size={18} className="text-primary" />
-                    <h2 className="text-sm font-black uppercase text-foreground tracking-[0.3em]">Resultados de Pitch</h2>
+                    <h2 className="text-sm font-black uppercase text-foreground tracking-[0.3em]">Resultados</h2>
                 </div>
                 <button
                     onClick={() => toggleRightPanel(false)}
@@ -250,25 +223,7 @@ export function PostItContainer() {
                     </div>
                 </PostItItem>
 
-                {/* 4. Roadmap Estimado */}
-                <PostItItem title="Roadmap Estimado" icon={<Clock size={18} />} badge={`${estimatedWeeks} Semanas`}>
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-3 p-3 rounded-xl bg-secondary border border-border">
-                            <Milestone size={24} className="text-primary" />
-                            <div className="flex flex-col">
-                                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Tiempo de Entrega</span>
-                                <span className="text-lg font-black text-foreground italic">{estimatedWeeks} Semanas</span>
-                            </div>
-                        </div>
-                        <ul className="space-y-2 text-[10px] font-bold text-muted-foreground uppercase tracking-tight list-disc pl-4">
-                            <li>Base Operativa: 1 Semana</li>
-                            <li>Complejidad Estructural: + {(blocksCount / 2) * 0.5} Semanas</li>
-                            {estimatedWeeks > 1 + (blocksCount / 2) * 0.5 && <li>Inmersividad Visual: + 1 Semana</li>}
-                        </ul>
-                    </div>
-                </PostItItem>
-
-                {/* 5. Guardado */}
+                {/* 4. Guardado */}
                 <PostItItem title="Gestión de Oportunidad" icon={<Zap size={18} />}>
                     <div className="space-y-4">
                         <button

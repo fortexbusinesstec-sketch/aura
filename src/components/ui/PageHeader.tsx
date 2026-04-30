@@ -8,12 +8,13 @@ interface PageHeaderProps {
     subtitle: string
     action?: React.ReactNode
     showBack?: boolean
+    backUrl?: string
 }
 
-export function PageHeader({ title, subtitle, action, showBack = true }: PageHeaderProps) {
+export function PageHeader({ title, subtitle, action, showBack = true, backUrl }: PageHeaderProps) {
     return (
         <div className="space-y-8 mb-12">
-            {showBack && <BackButton />}
+            {showBack && <BackButton href={backUrl} />}
 
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-5">

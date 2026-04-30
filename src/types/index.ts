@@ -76,7 +76,7 @@ export type NewClient = Omit<Client, 'id' | 'created_at' | 'portal_token' | 'pin
 export type NewCatalogItem = Omit<CatalogItem, 'id' | 'created_at'>
 
 export type OpportunityDimension = 'landing' | 'website' | 'webapp' | 'mobileapp'
-export type OpportunityStatus = 'discovery' | 'quoted' | 'won' | 'lost'
+export type OpportunityStatus = 'discovery' | 'proposal' | 'quoted' | 'approved' | 'in_progress' | 'won' | 'lost' | 'converted'
 
 export interface PitchBlock {
     id: string
@@ -107,6 +107,10 @@ export interface DiscoveryData {
     urgency: string;
     decision_maker: string;
     budget_range: string;
+    key_finding?: string;
+    value_proposition?: string;
+    industry?: string;
+    target_market?: string;
 }
 
 export interface StrategyData {
@@ -147,6 +151,19 @@ export interface Opportunity {
     financials_jsonb?: FinancialsData
     is_deployed?: boolean
     portal_token?: string
+    phase_template_id?: string | null
+    phases_plan_jsonb?: Array<{
+        phase_key: string
+        phase_name: string
+        phase_order: number
+        duration_days: number
+        revision_limit: number
+        planned_start_date: string
+        planned_end_date: string
+        requires_client_approval: boolean
+    }> | null
+    roadmap_configured?: boolean
+    project_converted_id?: string | null
     created_at: string
     updated_at: string
     client?: Client
@@ -203,3 +220,210 @@ export interface ProductDocumentation {
     updated_at: string
 }
 
+// --- PROJECT MANAGEMENT TYPES ---
+
+export type ProjectType = 'develop' | 'product';
+export type ProjectStatus = 'planning' | 'active' | 'paused' | 'review' | 'completed' | 'cancelled' | 'maintenance';
+
+export interface Project {
+    id: string;
+    project_type: ProjectType;
+    opportunity_id?: string | null;
+    product_project_id?: string | null;
+    code: string;
+    name: string;
+    description?: string | null;
+    client_id?: string | null;
+    status: ProjectStatus;
+    phase_template_id?: string | null;
+    current_cycle_number: number;
+    cycle_duration_days: number;
+    kickoff_date?: string | null;
+    deadline_date?: string | null;
+    completed_at?: string | null;
+    discord_channel_id?: string | null;
+    discord_webhook_url?: string | null;
+    lead_dev_id?: string | null;
+    project_manager_id?: string | null;
+    budget_allocated?: number | null;
+    budget_consumed: number;
+    linear_project_url?: string | null;
+    portal_view_mode?: 'proposal' | 'execution' | null;
+    contract_amount?: number | null;
+    amount_paid?: number | null;
+    amount_pending?: number | null;
+    staging_url?: string | null;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface PhaseDefinition {
+    key: string;
+    name: string;
+    order: number;
+    revision_limit: number;
+    default_duration_days: number;
+}
+
+export interface PhaseTemplate {
+    id: string;
+    name: string;
+    project_type: ProjectType;
+    phases_definition: PhaseDefinition[];
+    is_default: boolean;
+    created_at: string;
+}
+
+export type NewPhaseTemplate = Omit<PhaseTemplate, 'id' | 'created_at'>
+
+export type PhaseStatus = 'pending' | 'in_progress' | 'in_review' | 'client_review' | 'approved' | 'blocked' | 'completed' | 'skipped';
+export type DelayResponsibility = 'client' | 'internal' | 'external_factor';
+
+export interface ProjectPhase {
+    id: string;
+    project_id: string;
+    phase_key: string;
+    phase_name: string;
+    phase_order: number;
+    planned_start_date?: string | null;
+    planned_end_date?: string | null;
+    actual_start_date?: string | null;
+    actual_end_date?: string | null;
+    status: PhaseStatus;
+    revision_limit: number;
+    revision_count: number;
+    revision_extra_count: number;
+    client_approved_at?: string | null;
+    client_approved_by?: string | null;
+    internal_approved_at?: string | null;
+    delay_days: number;
+    delay_reason?: string | null;
+    delay_responsibility?: DelayResponsibility | null;
+    deliverables: any[];
+    internal_notes?: string | null;
+    client_visible_notes?: string | null;
+    created_at: string;
+    updated_at: string;
+}
+
+export type TaskStatus = 'backlog' | 'todo' | 'in_progress' | 'review' | 'blocked' | 'done' | 'cancelled';
+export type TaskPriority = 'critical' | 'high' | 'medium' | 'low';
+export type TaskType = 'feature' | 'bug' | 'refactor' | 'design' | 'meeting' | 'research' | 'documentation' | 'deploy';
+
+export interface Task {
+    id: string;
+    project_id: string;
+    phase_id?: string | null;
+    code: string;
+    title: string;
+    description?: string | null;
+    cycle_number?: number | null;
+    cycle_start_date?: string | null;
+    cycle_end_date?: string | null;
+    status: TaskStatus;
+    priority: TaskPriority;
+    task_type: TaskType;
+    assignee_id?: string | null;
+    reporter_id?: string | null;
+    estimated_hours?: number | null;
+    actual_hours: number;
+    due_date?: string | null;
+    started_at?: string | null;
+    completed_at?: string | null;
+    parent_task_id?: string | null;
+    blocked_by_task_id?: string | null;
+    discord_message_id?: string | null;
+    comments_count: number;
+    tags: string[];
+    created_at: string;
+    updated_at: string;
+}
+
+export type CommentType = 'text' | 'voice_note' | 'video' | 'screenshot' | 'file' | 'system';
+
+export interface TaskComment {
+    id: string;
+    task_id: string;
+    author_id?: string | null;
+    author_name?: string | null;
+    comment_type: CommentType;
+    content?: string | null;
+    file_url?: string | null;
+    file_name?: string | null;
+    transcription?: string | null;
+    is_internal: boolean;
+    created_at: string;
+}
+
+export type MeetingStatus = 'scheduled' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'no_show';
+
+export interface Meeting {
+    id: string;
+    project_id: string;
+    title: string;
+    meeting_type: string;
+    scheduled_at: string;
+    duration_minutes: number;
+    timezone: string;
+    status: MeetingStatus;
+    attendees: any[];
+    agenda?: string | null;
+    meeting_notes?: string | null;
+    decisions: string[];
+    action_items: any[];
+    meet_link?: string | null;
+    recording_url?: string | null;
+    client_satisfaction?: number | null;
+    internal_retro?: string | null;
+    created_at: string;
+}
+
+export type ApprovalStatus = 'pending' | 'approved' | 'rejected' | 'expired';
+
+export interface ProjectApproval {
+    id: string;
+    project_id: string;
+    phase_id?: string | null;
+    approval_type: string;
+    status: ApprovalStatus;
+    scope_snapshot: Record<string, any>;
+    requested_at: string;
+    requested_by?: string | null;
+    approved_at?: string | null;
+    approved_by_client_name?: string | null;
+    approved_by_client_email?: string | null;
+    client_digital_signature?: string | null;
+    change_request_reason?: string | null;
+    additional_cost: number;
+    additional_days: number;
+    original_approval_id?: string | null;
+    pdf_url?: string | null;
+    created_at: string;
+}
+
+
+// --- PROJECT SERVICES TYPES ---
+
+export type ServiceType = 'seo' | 'cro' | 'performance';
+export type ServiceLevel = 'basic' | 'intermediate' | 'advanced';
+export type ServiceStatus = 'pending' | 'in_progress' | 'completed';
+
+export interface ServiceAction {
+    action: string;
+    status: 'done' | 'in_progress' | 'pending';
+    completed_at?: string | null;
+    started_at?: string | null;
+    evidence_url?: string | null;
+}
+
+export interface ProjectService {
+    id: string;
+    project_id: string;
+    service_type: ServiceType;
+    service_level: ServiceLevel | null;
+    status: ServiceStatus;
+    metrics_jsonb: Record<string, any>;
+    actions_jsonb: ServiceAction[];
+    created_at: string;
+    updated_at: string;
+}

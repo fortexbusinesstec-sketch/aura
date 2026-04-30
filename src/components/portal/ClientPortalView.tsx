@@ -1,362 +1,1161 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import { Opportunity, CatalogItem } from '@/types'
 import {
-    CheckCircle2,
-    ArrowRight,
     Zap,
-    ShieldCheck,
-    Clock,
+    Building2,
     Target,
     BarChart3,
     FileText,
-    Building2,
+    Clock,
+    CheckCircle2,
+    AlertTriangle,
+    TrendingUp,
+    Globe,
+    ShieldCheck,
+    CreditCard,
+    ArrowRight,
+    Download,
+    MessageSquare,
+    Check,
+    ChevronRight,
+    Lock,
+    Unlock,
+    Smartphone,
+    Search,
+    Megaphone,
     Users,
     Lightbulb,
-    Globe
+    AlertCircle,
+    Calendar,
+    Rocket,
+    XCircle,
+    Briefcase,
+    Layers,
+    Code2,
+    TestTube2,
+    Radio
 } from 'lucide-react'
 
-interface Props {
-    opportunity: Partial<Opportunity>
-    catalog: CatalogItem[]
-    mode?: 'desktop' | 'mobile'
+/* ═══════════════════════════════════════════════════════════════
+   CLIENT PORTAL VIEW — DASHBOARD ESTRATÉGICO INTERACTIVO
+   Aura OS v2.0 | Portal de Propuestas para Clientes B2B
+   ═══════════════════════════════════════════════════════════════ */
+
+const formatDateShort = (dateStr: string) => {
+    if (!dateStr) return '-'
+    try {
+        const date = new Date(dateStr + (dateStr.includes('T') ? '' : 'T00:00:00'))
+        return date.toLocaleDateString('es-PE', { day: '2-digit', month: 'short' })
+    } catch (e) { return dateStr }
 }
 
-export function ClientPortalView({ opportunity, catalog, mode = 'desktop' }: Props) {
-    const client = opportunity.client
-    const profile = client?.client_profile_jsonb
-    const insights = client?.client_insights_jsonb
-    const draft = opportunity.draft_jsonb
-    const strategy = opportunity.strategy_jsonb
+interface Props {
+    opportunity: Partial<Opportunity> | null
+    client: any
+    catalog: CatalogItem[]
+    phases?: any[]
+    mode?: 'desktop' | 'mobile'
+    activeTab?: TabId
+    onTabChange?: (tab: TabId) => void
+    hideHeader?: boolean
+}
 
-    // Fallback content
-    const headline = opportunity.portal_headline || `Propuesta Estratégica Aura OS`
-    const subheadline = opportunity.portal_subheadline || `Solución de alto rendimiento para ${client?.razon_social || 'su empresa'}`
+export type TabId = 'resumen' | 'inteligencia' | 'estrategia' | 'tecnica' | 'inversion' | 'roadmap'
 
-    const getCatalogItem = (id: string | null) => catalog.find(i => i.id === id)
+/* ─────────────────── DATOS DE EJEMPLO (GRUPO NORTE) ───────────────────
+   Estos valores se usan como fallback cuando opportunity no tiene
+   datos completos. En producción, todo viene del store/API.          */
 
-    // Helper for list conversion (nl2br equivalent)
-    const renderList = (text: string | null) => {
-        if (!text) return null
-        return text.split('\n').filter(t => t.trim()).map((t, i) => (
-            <div key={i} className="flex items-start gap-3 mb-4">
-                <div className="mt-1.5 h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
-                <p className="text-sm leading-relaxed text-slate-600">{t}</p>
+const FALLBACK_CLIENT = {
+    razon_social: 'Grupo Norte Facility Peru S.A.C.',
+    ruc: '20565993390',
+    industry: 'Facility Management / Servicios Integrados de Mantenimiento y Limpieza',
+    business_model: 'B2B' as const,
+    value_proposition: 'Outsourcing operativo integral con eficiencia de costos',
+    target_market: 'Grandes y medianas empresas con infraestructura física (retail, salud, financiero, corporativo, industrial)',
+    digital_presence: {
+        website: { quality: 'medium' as const, observations: 'Diseño genérico, sin blog, calidad media' },
+        social: { status: 'inactive' as const, observations: 'Última publicación 2025, completamente inactiva' },
+        seo: { status: 'basic' as const, observations: 'Solo marca propia, tráfico orgánico mínimo' },
+        ads: { status: 'not_detected' as const, observations: 'Sin presencia publicitaria detectada' }
+    }
+}
+
+const FALLBACK_INSIGHTS = {
+    key_finding: 'Grupo Norte tiene operación sólida (40+ años) pero presencia digital inexistente frente a competidores que capturan leads B2B activamente. El riesgo no es la competencia directa en precio, sino la invisibilidad digital.',
+    diagnosis: 'Operador B2B tradicional en un mercado que se digitaliza. No compite contra limpiadoras locales; compite contra la irrelevancia digital.',
+    competitors: [
+        { name: 'Sodexo Perú', segment: 'Premium' as const, strength: 'Command Center, +12k colaboradores', threat: 'high' as const },
+        { name: 'Grupo EULEN', segment: 'Premium' as const, strength: 'Presencia en 11 países', threat: 'high' as const },
+        { name: 'Tgestiona', segment: 'Medio' as const, strength: 'SEO agresivo y captación digital', threat: 'medium' as const },
+        { name: 'Operadores locales A', segment: 'Low-cost' as const, strength: 'Precio competitivo, cercanía', threat: 'low' as const },
+        { name: 'Operadores locales B', segment: 'Low-cost' as const, strength: 'Relaciones personales', threat: 'low' as const },
+        { name: 'Nuevos entrantes digitales', segment: 'Medio' as const, strength: 'Plataformas tech-first', threat: 'medium' as const }
+    ],
+    trends: [
+        { title: 'Digitalización obligatoria', icon: 'globe', impact: 'Los clientes B2B esperan cotizar y contratar vía web. Sin canal digital, se pierde el 60% de oportunidades.' },
+        { title: 'Contratos por Resultados', icon: 'target', impact: 'El modelo de pago por hora/hombre está siendo reemplazado por KPIs medibles y SLA basados en outcomes.' },
+        { title: 'ESG como requisito', icon: 'shield', impact: 'Empresas grandes exigen certificaciones ambientales y sociales. Es un diferenciador obligatorio en RFPs.' },
+        { title: 'Espacios híbridos', icon: 'building', impact: 'Post-pandemia, los edificios requieren protocolos flexibles de limpieza y mantenimiento adaptativos.' },
+        { title: 'Escasez de Talento Técnico', icon: 'users', impact: 'La rotación de personal operativo supera el 30% anual. La retención depende de capacitación y tecnología.' }
+    ],
+    opportunities: [
+        { action: 'Activar SEO técnico', detail: 'Indexar servicios por vertical (retail, salud, industrial) para captar tráfico B2B orgánico.' },
+        { action: 'Digitalizar oferta con CMMS cloud', detail: 'Ofrecer dashboard al cliente con tickets, reportes y métricas en tiempo real.' },
+        { action: 'Redefinir SLA a outcome-based', detail: 'Cambiar contratos de "limpieza diaria" a "95% uptime de espacios certificados".' },
+        { action: 'Pivotar staffing a talento técnico certificado', detail: 'Certificar al personal en normativas ISO y ESG para competir en RFPs grandes.' }
+    ]
+}
+
+const FALLBACK_OPPORTUNITY = {
+    headline: 'Propuesta Estratégica Aura OS',
+    subheadline: 'Transformación digital para Grupo Norte Facility Peru S.A.C.',
+    totalCapex: 705,
+    totalOpex: 150,
+    investment: 705,
+    timeline: '2 semanas',
+    revision_rounds: '2 rondas',
+    dimension: 'landing' as const,
+    deliverables: 'Landing Page con 5 bloques estratégicos:\n• Hero de impacto con propuesta de valor\n• Sección Nosotros (historia + fortaleza operativa)\n• Servicios (Facility, Limpieza, Mantenimiento)\n• Productos / Diferenciadores\n• Footer con CTA de contacto y datos',
+    payment_terms: '50% inicio / 50% entrega',
+    roi_estimate: '3-6 meses',
+    revenue_potential: 'Alto — captación directa de leads B2B calificados',
+    meeting_notes: 'Mencionaron que debemos centrarnos en las ventas del negocio. Enfocado directamente en los servicios de limpieza.',
+    status: 'discovery' as const,
+    blocks: [
+        { name: 'Hero', complexity: 'Base', price: 120 },
+        { name: 'Nosotros', complexity: 'Base', price: 120 },
+        { name: 'Servicios', complexity: 'Complejo', price: 168 },
+        { name: 'Productos', complexity: 'Base', price: 120 },
+        { name: 'Footer + CTA', complexity: 'Base', price: 120 }
+    ],
+    modules: [
+        { name: 'Optimización SEO On-Page', active: true },
+        { name: 'Core Web Vitals', active: true },
+        { name: 'Formulario de Contacto Inteligente', active: true },
+        { name: 'Analytics + Pixel Tracking', active: true }
+    ],
+    exclusions: [
+        'Copywriting profesional especializado (se entrega guía de contenido)',
+        'Fotografía premium de locales y equipos',
+        'Integraciones con CRM/ERP no especificadas',
+        'Mantenimiento post-lanzamiento (cotizable aparte)'
+    ]
+}
+
+const PHASES = [
+    { id: 'discovery', label: 'Discovery', active: true, completed: false },
+    { id: 'wireframes', label: 'Wireframes', active: false, completed: false },
+    { id: 'diseno', label: 'Diseño', active: false, completed: false },
+    { id: 'desarrollo', label: 'Desarrollo', active: false, completed: false },
+    { id: 'qa', label: 'QA', active: false, completed: false },
+    { id: 'live', label: 'Live', active: false, completed: false }
+]
+
+const TECH_PHASES = [
+    { name: 'Wireframes', revisions: 1, status: 'pending', date: 'Semana 1' },
+    { name: 'Diseño UI', revisions: 2, status: 'pending', date: 'Semana 1-2' },
+    { name: 'Desarrollo', revisions: 1, status: 'pending', date: 'Semana 2' },
+    { name: 'QA & Lanzamiento', revisions: 1, status: 'pending', date: 'Semana 2' }
+]
+
+const ROADMAP_ITEMS = [
+    { phase: 'past', title: 'Discovery Completado', date: '15 Abr 2026', description: 'Investigación de mercado, análisis de competencia y entrevista con stakeholders finalizada.', icon: Search },
+    { phase: 'present', title: 'Propuesta Enviada', date: '28 Abr 2026', description: 'Esperando aprobación del cliente para iniciar fase de diseño.', icon: FileText },
+    { phase: 'future', title: 'Wireframes', date: '05 May 2026', description: 'Estructura visual de los 5 bloques de la landing.', icon: Layers },
+    { phase: 'future', title: 'Diseño UI', date: '12 May 2026', description: 'Aplicación de identidad visual y diseño de interfaz.', icon: Target },
+    { phase: 'future', title: 'Desarrollo', date: '19 May 2026', description: 'Codificación frontend con Next.js y despliegue en Aura OS.', icon: Code2 },
+    { phase: 'future', title: 'QA & Revisión', date: '26 May 2026', description: 'Testing, correcciones y rondas de revisión incluidas.', icon: TestTube2 },
+    { phase: 'future', title: 'Go Live', date: '02 Jun 2026', description: 'Lanzamiento oficial y entrega de documentación.', icon: Rocket }
+]
+
+/* ─────────────────── UTILIDADES ─────────────────── */
+
+const formatCurrency = (val: number) =>
+    `S/ ${val.toLocaleString('es-PE', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
+
+const statusConfig: Record<string, { label: string; bg: string; text: string; border: string }> = {
+    discovery: { label: 'En Discovery', bg: 'bg-[#F2C272]/15', text: 'text-[#B45309]', border: 'border-[#F2C272]/30' },
+    quoted: { label: 'Propuesta Enviada', bg: 'bg-[#A7C7A3]/15', text: 'text-[#166534]', border: 'border-[#A7C7A3]/30' },
+    won: { label: 'Aprobado', bg: 'bg-[#A7C7A3]/20', text: 'text-[#166534]', border: 'border-[#A7C7A3]/40' },
+    lost: { label: 'Cerrado', bg: 'bg-[#DF7B71]/15', text: 'text-[#991B1B]', border: 'border-[#DF7B71]/30' }
+}
+
+const segmentColors: Record<string, string> = {
+    'Premium': 'bg-violet-100 text-violet-700 border-violet-200',
+    'Medio-Alto': 'bg-amber-100 text-amber-700 border-amber-200',
+    'Medio': 'bg-amber-50 text-amber-600 border-amber-100',
+    'Low-cost': 'bg-emerald-100 text-emerald-700 border-emerald-200'
+}
+
+const threatIcon = (level: string) => {
+    if (level === 'high') return <AlertTriangle size={14} className="text-[#DF7B71]" />
+    if (level === 'medium') return <AlertCircle size={14} className="text-[#F2C272]" />
+    return <CheckCircle2 size={14} className="text-[#A7C7A3]" />
+}
+
+const scoreColor = (score: number) => {
+    if (score >= 7) return 'bg-emerald-500'
+    if (score >= 4) return 'bg-amber-400'
+    return 'bg-[#DF7B71]'
+}
+
+const scoreLabel = (score: number) => {
+    if (score >= 7) return 'Buena'
+    if (score >= 4) return 'Regular'
+    return 'Crítica'
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SUB-COMPONENTES
+   ═══════════════════════════════════════════════════════════════ */
+
+function DashboardHeader({ opp, client, status }: { opp: any; client: any; status: string }) {
+    const cfg = statusConfig[status] || statusConfig.discovery
+    const razonSocial = client?.razon_social || FALLBACK_CLIENT.razon_social
+    const ruc = client?.ruc || FALLBACK_CLIENT.ruc
+
+    return (
+        <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/60">
+            <div className="flex items-center justify-between px-5 py-3 gap-4">
+                {/* Logo */}
+                <div className="flex items-center gap-2.5 shrink-0">
+                    <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center">
+                        <span className="text-white font-black text-[10px]">FX</span>
+                    </div>
+                    <span className="hidden sm:block font-extrabold tracking-tighter text-xs uppercase text-slate-900">Aura OS</span>
+                </div>
+
+                {/* Centro: Info Cliente */}
+                <div className="flex-1 min-w-0 flex flex-col items-center">
+                    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                        <span>Propuesta Estratégica</span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-sm font-bold text-slate-900 truncate max-w-[200px] sm:max-w-sm">{razonSocial}</span>
+                        <span className="hidden sm:inline text-[10px] text-slate-400 font-bold">RUC {ruc}</span>
+                    </div>
+                </div>
+
+                {/* Derecha: Estado + Botones */}
+                <div className="flex items-center gap-2 shrink-0">
+                    <span className={`hidden md:inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${cfg.bg} ${cfg.text} ${cfg.border}`}>
+                        {cfg.label}
+                    </span>
+                    <div className="hidden lg:flex items-center gap-1.5">
+                        <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 text-[10px] font-black uppercase tracking-wider text-slate-600 hover:bg-slate-50 transition-colors">
+                            <Download size={12} /> PDF
+                        </button>
+                        <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#A7C7A3] text-[#1a3a16] text-[10px] font-black uppercase tracking-wider hover:bg-[#96b892] transition-colors">
+                            <CheckCircle2 size={12} /> Aprobar
+                        </button>
+                        <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-900 text-white text-[10px] font-black uppercase tracking-wider hover:bg-slate-800 transition-colors">
+                            <MessageSquare size={12} /> Comentar
+                        </button>
+                    </div>
+                </div>
             </div>
-        ))
+        </header>
+    )
+}
+
+function TabNavigation({ activeTab, onTabChange }: { activeTab: TabId; onTabChange: (t: TabId) => void }) {
+    const tabs: { id: TabId; label: string; icon: any }[] = [
+        { id: 'resumen', label: 'Resumen', icon: BarChart3 },
+        { id: 'inteligencia', label: 'Mercado', icon: Globe },
+        { id: 'estrategia', label: 'Estrategia', icon: Target },
+        { id: 'tecnica', label: 'Técnica', icon: FileText },
+        { id: 'inversion', label: 'Inversión', icon: CreditCard },
+        { id: 'roadmap', label: 'Roadmap', icon: Calendar }
+    ]
+
+    return (
+        <nav className="px-4 py-3 bg-white border-b border-slate-100">
+            <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
+                {tabs.map(tab => {
+                    const Icon = tab.icon
+                    const isActive = activeTab === tab.id
+                    return (
+                        <button
+                            key={tab.id}
+                            onClick={() => onTabChange(tab.id)}
+                            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider whitespace-nowrap transition-all shrink-0
+                                ${isActive
+                                    ? 'bg-[#FFE8BE] text-[#473E28] shadow-sm'
+                                    : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
+                                }`}
+                        >
+                            <Icon size={13} />
+                            {tab.label}
+                        </button>
+                    )
+                })}
+            </div>
+        </nav>
+    )
+}
+
+/* ─────────── TAB 1: RESUMEN EJECUTIVO ─────────── */
+
+function TabResumenEjecutivo({ opp, client, phases: phasesProp }: { opp: any; client: any; phases: any[] }) {
+    const phases = phasesProp && phasesProp.length > 0 ? phasesProp : PHASES
+    // DATA_API: opp.draft_jsonb.totalCalculated, opp.delivery_time_text, opp.revision_rounds, opp.dimension
+    const investment = opp.draft_jsonb?.totalCalculated || FALLBACK_OPPORTUNITY.investment
+    const timeline = opp.delivery_time_text || FALLBACK_OPPORTUNITY.timeline
+    const revisions = opp.revision_rounds || FALLBACK_OPPORTUNITY.revision_rounds
+    const dimension = opp.dimension || FALLBACK_OPPORTUNITY.dimension
+    const dimensionLabel = dimension === 'landing' ? 'Landing Page' : dimension === 'website' ? 'Website' : 'Web App'
+
+    // DATA_API: client.client_profile_jsonb.value_proposition, target_market, industry, business_model
+    const profile = client?.client_profile_jsonb
+    const valueProp = profile?.value_proposition || FALLBACK_CLIENT.value_proposition
+    const targetMarket = profile?.target_market || FALLBACK_CLIENT.target_market
+    const industry = profile?.industry || FALLBACK_CLIENT.industry
+    const b2b = profile?.business_model || FALLBACK_CLIENT.business_model
+
+    // DATA_API: client.client_insights_jsonb.initial_observations.key_finding
+    const insights = client?.client_insights_jsonb
+    const keyFinding = insights?.initial_observations?.key_finding || FALLBACK_INSIGHTS.key_finding
+
+    const kpis = [
+        { label: 'Inversión Propuesta', value: formatCurrency(investment), icon: CreditCard, color: 'text-slate-900' },
+        { label: 'Tipo de Proyecto', value: `${dimensionLabel} (5 bloques)`, icon: Layers, color: 'text-slate-900' }
+    ]
+
+    return (
+        <div className="space-y-5 animate-in fade-in duration-300">
+            {/* KPI Cards */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                {kpis.map((kpi, i) => {
+                    const Icon = kpi.icon
+                    return (
+                        <div key={i} className="bg-white rounded-2xl border border-slate-100 p-4 hover:border-[#FFE8BE]/60 hover:shadow-sm transition-all">
+                            <div className="flex items-center gap-2 mb-2">
+                                <div className="p-1.5 rounded-lg bg-[#FFE8BE]/30">
+                                    <Icon size={14} className="text-[#473E28]" />
+                                </div>
+                                <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">{kpi.label}</span>
+                            </div>
+                            <p className={`text-lg font-black ${kpi.color} tracking-tight`}>{kpi.value}</p>
+                        </div>
+                    )
+                })}
+            </div>
+
+            {/* Grid 60/40 */}
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+                {/* Propuesta de Valor — 60% */}
+                <div className="lg:col-span-3 bg-white rounded-2xl border border-slate-100 p-5">
+                    <div className="flex items-center gap-2 mb-4">
+                        <Zap size={16} className="text-[#D4A843]" />
+                        <h3 className="text-xs font-black uppercase tracking-tighter text-slate-900">Propuesta de Valor</h3>
+                    </div>
+                    <p className="text-sm font-bold text-slate-800 leading-relaxed mb-4">{valueProp}</p>
+                    <div className="flex flex-wrap gap-2 mb-4">
+                        <span className="px-2.5 py-1 rounded-full bg-slate-100 text-[10px] font-black uppercase tracking-wider text-slate-500">{industry}</span>
+                        <span className="px-2.5 py-1 rounded-full bg-[#FFE8BE]/40 text-[10px] font-black uppercase tracking-wider text-[#473E28]">{b2b}</span>
+                    </div>
+                    <div className="h-px bg-slate-100 my-4" />
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Target de Segmentos</p>
+                    <div className="flex flex-wrap gap-1.5">
+                        {['#Retail', '#Salud', '#Corporativo', '#Industrial', '#Financiero'].map(tag => (
+                            <span key={tag} className="px-2 py-0.5 rounded-md bg-slate-50 text-[10px] font-bold text-slate-500 border border-slate-100">{tag}</span>
+                        ))}
+                    </div>
+                    <p className="mt-3 text-xs text-slate-500 leading-relaxed">{targetMarket}</p>
+                </div>
+
+                {/* Hallazgo Principal — 40% */}
+                <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 p-5 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-[#DF7B71]/5 rounded-full blur-2xl" />
+                    <div className="flex items-center gap-2 mb-3">
+                        <div className="p-1.5 rounded-lg bg-[#DF7B71]/10">
+                            <AlertTriangle size={16} className="text-[#DC2626]" />
+                        </div>
+                        <h3 className="text-xs font-black uppercase tracking-tighter text-slate-900">Hallazgo Principal</h3>
+                    </div>
+                    <p className="text-xs font-medium text-slate-600 leading-relaxed italic">&ldquo;{keyFinding}&rdquo;</p>
+                    <div className="mt-4 flex items-center gap-1.5 text-[10px] font-bold text-[#D4A843] hover:underline cursor-pointer">
+                        <ChevronRight size={12} /> Ver diagnóstico completo
+                    </div>
+                </div>
+            </div>
+
+            {/* Barra de Progreso */}
+            <div className="bg-white rounded-2xl border border-slate-100 p-5">
+                <div className="flex items-center gap-2 mb-4">
+                    <Rocket size={16} className="text-[#D4A843]" />
+                    <h3 className="text-xs font-black uppercase tracking-tighter text-slate-900">Progreso del Proyecto</h3>
+                </div>
+                <div className="flex items-center gap-2">
+                    {phases.map((phase, i) => (
+                        <div key={phase.id || phase.phase_key || i} className="flex-1 flex flex-col items-center gap-2">
+                            <div className={`w-full h-2 rounded-full transition-all ${
+                                phase.status === 'completed' || phase.status === 'approved' ? 'bg-[#A7C7A3]' :
+                                phase.status === 'in_progress' || phase.status === 'in_review' ? 'bg-[#F2C272]' : 'bg-slate-100'
+                            }`} />
+                            <span className={`text-[9px] font-black uppercase tracking-wider text-center ${
+                                phase.status === 'in_progress' || phase.status === 'in_review' ? 'text-[#B45309]' :
+                                phase.status === 'completed' || phase.status === 'approved' ? 'text-[#166534]' : 'text-slate-300'
+                            }`}>
+                                {phase.phase_name || phase.label}
+                            </span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    )
+}
+
+/* ─────────── TAB 2: INTELIGENCIA DE MERCADO ─────────── */
+
+function TabInteligenciaMercado({ client }: { client: any }) {
+    // DATA_API: client.client_insights_jsonb
+    const insights = client?.client_insights_jsonb
+    const diagnosis = insights?.technical_conclusion?.diagnosis || FALLBACK_INSIGHTS.diagnosis
+    const competitors = insights?.competitors_detected || FALLBACK_INSIGHTS.competitors
+    const trends = insights?.market_notes?.length > 0
+        ? insights.market_notes.map((n: any, i: number) => ({
+            title: n.trend || FALLBACK_INSIGHTS.trends[i]?.title,
+            impact: n.impact || FALLBACK_INSIGHTS.trends[i]?.impact,
+            icon: FALLBACK_INSIGHTS.trends[i]?.icon || 'globe'
+        }))
+        : FALLBACK_INSIGHTS.trends
+    const opportunities = insights?.technical_conclusion?.immediate_opportunities?.length > 0
+        ? insights.technical_conclusion.immediate_opportunities.map((o: any) => ({ action: o.action, detail: o.detail }))
+        : FALLBACK_INSIGHTS.opportunities
+
+    const trendIcons: Record<string, any> = { globe: Globe, target: Target, shield: ShieldCheck, building: Building2, users: Users }
+
+    return (
+        <div className="space-y-5 animate-in fade-in duration-300">
+            {/* Diagnóstico Técnico */}
+            <div className="bg-white rounded-2xl border border-[#DF7B71]/20 p-5 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[#DF7B71]/5 rounded-full blur-3xl" />
+                <div className="flex items-start gap-3 relative z-10">
+                    <div className="p-2 rounded-xl bg-[#DF7B71]/10 shrink-0">
+                        <AlertTriangle size={18} className="text-[#DC2626]" />
+                    </div>
+                    <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                            <h3 className="text-xs font-black uppercase tracking-tighter text-slate-900">Diagnóstico Técnico</h3>
+                            <span className="px-2 py-0.5 rounded-full bg-[#DF7B71]/10 text-[10px] font-black uppercase tracking-wider text-[#DC2626] border border-[#DF7B71]/20">
+                                Crítico — Riesgo de irrelevancia digital
+                            </span>
+                        </div>
+                        <p className="text-xs font-medium text-slate-600 leading-relaxed">{diagnosis}</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Competidores */}
+            <div className="bg-white rounded-2xl border border-slate-100 p-5">
+                <div className="flex items-center gap-2 mb-4">
+                    <Users size={16} className="text-[#D4A843]" />
+                    <h3 className="text-xs font-black uppercase tracking-tighter text-slate-900">Mapa de Competidores</h3>
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full min-w-[500px]">
+                        <thead>
+                            <tr className="border-b border-slate-100">
+                                <th className="text-left text-[9px] font-black uppercase tracking-widest text-slate-400 py-2 pr-4">Competidor</th>
+                                <th className="text-left text-[9px] font-black uppercase tracking-widest text-slate-400 py-2 pr-4">Segmento</th>
+                                <th className="text-left text-[9px] font-black uppercase tracking-widest text-slate-400 py-2 pr-4">Fortaleza Clave</th>
+                                <th className="text-left text-[9px] font-black uppercase tracking-widest text-slate-400 py-2">Amenaza</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {competitors.map((c: any, i: number) => (
+                                <tr key={i} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                                    <td className="py-3 pr-4 text-xs font-bold text-slate-800">{c.name}</td>
+                                    <td className="py-3 pr-4">
+                                        <span className={`inline-block px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border ${segmentColors[c.segment] || segmentColors.Medio}`}>
+                                            {c.segment}
+                                        </span>
+                                    </td>
+                                    <td className="py-3 pr-4 text-[11px] text-slate-500 font-medium">{c.strength}</td>
+                                    <td className="py-3">
+                                        <div className="flex items-center gap-1.5">
+                                            {threatIcon(c.threat || 'low')}
+                                            <span className="text-[10px] font-bold text-slate-400 uppercase">
+                                                {c.threat === 'high' ? 'Alta' : c.threat === 'medium' ? 'Media' : 'Baja'}
+                                            </span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {/* Tendencias */}
+            <div>
+                <div className="flex items-center gap-2 mb-3 px-1">
+                    <TrendingUp size={16} className="text-[#D4A843]" />
+                    <h3 className="text-xs font-black uppercase tracking-tighter text-slate-900">Tendencias del Mercado</h3>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {trends.map((t: any, i: number) => {
+                        const IconComp = trendIcons[t.icon] || Globe
+                        return (
+                            <div key={i} className="bg-white rounded-2xl border border-slate-100 p-4 hover:border-[#FFE8BE]/50 hover:shadow-sm transition-all">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <div className="p-1.5 rounded-lg bg-[#FFE8BE]/30">
+                                        <IconComp size={13} className="text-[#473E28]" />
+                                    </div>
+                                    <h4 className="text-[11px] font-black uppercase tracking-tight text-slate-800">{t.title}</h4>
+                                </div>
+                                <p className="text-[11px] text-slate-500 font-medium leading-relaxed">{t.impact}</p>
+                            </div>
+                        )
+                    })}
+                </div>
+            </div>
+
+            {/* Oportunidades */}
+            <div className="bg-white rounded-2xl border border-slate-100 p-5">
+                <div className="flex items-center gap-2 mb-4">
+                    <Lightbulb size={16} className="text-[#D4A843]" />
+                    <h3 className="text-xs font-black uppercase tracking-tighter text-slate-900">Oportunidades Inmediatas</h3>
+                </div>
+                <div className="space-y-3">
+                    {opportunities.map((o: any, i: number) => (
+                        <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-slate-50/50 border border-slate-100">
+                            <div className="mt-0.5 shrink-0 w-5 h-5 rounded-md border-2 border-[#A7C7A3] bg-[#A7C7A3]/10 flex items-center justify-center">
+                                <Check size={12} className="text-[#166534]" />
+                            </div>
+                            <div>
+                                <p className="text-xs font-bold text-slate-800">{o.action}</p>
+                                <p className="text-[11px] text-slate-500 font-medium leading-relaxed mt-0.5">{o.detail}</p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    )
+}
+
+/* ─────────── TAB 3: ESTRATEGIA DIGITAL ─────────── */
+
+function TabEstrategiaDigital({ opp, client }: { opp: any; client: any }) {
+    // DATA_API: client.client_profile_jsonb.digital_presence
+    const dp = client?.client_profile_jsonb?.digital_presence || FALLBACK_CLIENT.digital_presence
+
+    const scores = [
+        {
+            label: 'Website',
+            score: dp.website.quality === 'high' ? 8 : dp.website.quality === 'medium' ? 6 : dp.website.quality === 'low' ? 3 : 5,
+            obs: dp.website.observations || 'Calidad media, sin blog'
+        },
+        {
+            label: 'Social Media',
+            score: dp.social.status === 'high' ? 8 : dp.social.status === 'moderate' ? 5 : dp.social.status === 'inactive' ? 2 : 3,
+            obs: dp.social.observations || 'Inactiva, última pub 2025'
+        },
+        {
+            label: 'SEO',
+            score: dp.seo.status === 'advanced' ? 8 : dp.seo.status === 'basic' ? 4 : dp.seo.status === 'none' ? 1 : 3,
+            obs: dp.seo.observations || 'Solo marca propia'
+        },
+        {
+            label: 'Publicidad ADS',
+            score: dp.ads.status === 'active' ? 8 : dp.ads.status === 'inactive' ? 2 : 0,
+            obs: dp.ads.observations || 'Sin presencia publicitaria'
+        }
+    ]
+
+    // DATA_API: opp.strategy_jsonb
+    const strategy = opp.strategy_jsonb
+    const headline = opp.portal_headline || 'Portal digital B2B para captación de leads cualificados'
+    const subheadline = opp.portal_subheadline || 'Presencia web que refleje los 40+ años de experiencia operativa y genere confianza en grandes cuentas.'
+    const keyMessage = strategy?.key_message || 'La limpieza y mantenimiento de tu infraestructura en manos de expertos con cuatro décadas de trayectoria.'
+    const targetUser = strategy?.target_user || 'Gerentes de Facility, Jefes de compras B2B y Directores de Operaciones en retail, salud y corporativo.'
+    const techValueProp = strategy?.value_proposition || 'Landing de alta conversión con mensaje sectorial, prueba social y CTA claro para solicitar cotización.'
+
+    // DATA_API: opp.discovery_jsonb
+    const discovery = opp.discovery_jsonb
+    const painPoint = discovery?.pain_points?.[0]?.problem || 'Invisibilidad digital frente a competidores con presencia activa'
+    const urgency = discovery?.urgency || 'Alta — perdiendo RFPs por falta de presencia web profesional'
+    const decisionMaker = discovery?.decision_maker || 'Pendiente de definir'
+
+    return (
+        <div className="space-y-5 animate-in fade-in duration-300">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* Estado Actual */}
+                <div className="bg-white rounded-2xl border border-slate-100 p-5">
+                    <div className="flex items-center gap-2 mb-4">
+                        <Search size={16} className="text-[#D4A843]" />
+                        <h3 className="text-xs font-black uppercase tracking-tighter text-slate-900">Estado Digital Actual</h3>
+                    </div>
+                    <div className="space-y-4">
+                        {scores.map((s, i) => (
+                            <div key={i}>
+                                <div className="flex items-center justify-between mb-1.5">
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{s.label}</span>
+                                    <span className="text-[10px] font-black text-slate-400">{s.score}/10 — {scoreLabel(s.score)}</span>
+                                </div>
+                                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                                    <div className={`h-full rounded-full ${scoreColor(s.score)}`} style={{ width: `${s.score * 10}%` }} />
+                                </div>
+                                <p className="mt-1 text-[10px] text-slate-400 font-medium">{s.obs}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Dirección Propuesta */}
+                <div className="bg-white rounded-2xl border border-slate-100 p-5">
+                    <div className="flex items-center gap-2 mb-4">
+                        <Target size={16} className="text-[#D4A843]" />
+                        <h3 className="text-xs font-black uppercase tracking-tighter text-slate-900">Dirección Propuesta</h3>
+                    </div>
+                    <div className="space-y-3">
+                        {[
+                            { label: 'Headline del Portal', value: headline },
+                            { label: 'Subheadline', value: subheadline },
+                            { label: 'Mensaje Clave', value: keyMessage },
+                            { label: 'Usuario Objetivo', value: targetUser },
+                            { label: 'Propuesta de Valor Técnica', value: techValueProp }
+                        ].map((field, i) => (
+                            <div key={i}>
+                                <label className="block text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">{field.label}</label>
+                                <div className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2.5 text-xs font-bold text-slate-700">
+                                    {field.value}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            {/* Grid 2 cols: Dolor, Urgencia */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {[
+                    { title: 'Punto de Dolor', value: painPoint, icon: AlertCircle },
+                    { title: 'Urgencia', value: urgency, icon: Clock }
+                ].map((item, i) => {
+                    const Icon = item.icon
+                    const isPending = item.value.toLowerCase().includes('pendiente') || item.value.toLowerCase().includes('definir')
+                    return (
+                        <div key={i} className="bg-white rounded-2xl border border-slate-100 p-4">
+                            <div className="flex items-center gap-2 mb-2">
+                                <Icon size={14} className="text-slate-400" />
+                                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500">{item.title}</h4>
+                            </div>
+                            <p className={`text-xs font-bold leading-relaxed ${isPending ? 'text-slate-400' : 'text-slate-800'}`}>
+                                {item.value}
+                            </p>
+                            {isPending && (
+                                <span className="inline-block mt-2 px-2 py-0.5 rounded-md bg-slate-100 text-[9px] font-black uppercase tracking-wider text-slate-400">
+                                    Pendiente de definir
+                                </span>
+                            )}
+                        </div>
+                    )
+                })}
+            </div>
+        </div>
+    )
+}
+
+/* ─────────── TAB 4: PROPUESTA TÉCNICA ─────────── */
+
+function TabPropuestaTecnica({ opp, catalog, phases: realPhases = [] }: { opp: any; catalog: CatalogItem[]; phases?: any[] }) {
+    // DATA_API: opp.draft_jsonb.blocks + catalog para precios y nombres
+    const draft = opp.draft_jsonb
+    const blocks = draft?.blocks?.length > 0
+        ? draft.blocks.map((b: any, i: number) => {
+            const item = catalog.find((c: CatalogItem) => c.id === (opp.dimension === 'landing' ? b.complexity_id : b.catalog_item_id))
+            const isComplex = b.complexity_id !== null && b.complexity_id !== b.catalog_item_id
+            const price = item?.base_price_pen || FALLBACK_OPPORTUNITY.blocks[i]?.price || 120
+            return {
+                name: b.name || FALLBACK_OPPORTUNITY.blocks[i]?.name || `Bloque ${i + 1}`,
+                complexity: isComplex ? 'Complejo' : 'Base',
+                price,
+                isComplex
+            }
+        })
+        : FALLBACK_OPPORTUNITY.blocks
+
+    // DATA_API: opp.draft_jsonb.selectedModules
+    const modules = draft?.selectedModules?.length > 0
+        ? draft.selectedModules.map((sm: any) => {
+            const item = catalog.find((c: CatalogItem) => c.id === sm.id)
+            return { name: item?.name || sm.comment || 'Módulo', active: true }
+        })
+        : FALLBACK_OPPORTUNITY.modules
+
+    // DATA_API: opp.not_included
+    const exclusions = opp.not_included
+        ? opp.not_included.split('\n').filter((l: string) => l.trim())
+        : FALLBACK_OPPORTUNITY.exclusions
+
+    return (
+        <div className="space-y-5 animate-in fade-in duration-300">
+            {/* Alcance del Proyecto */}
+            <div className="bg-white rounded-2xl border border-slate-100 p-5">
+                <div className="flex items-center gap-2 mb-4">
+                    <Layers size={16} className="text-[#D4A843]" />
+                    <h3 className="text-xs font-black uppercase tracking-tighter text-slate-900">Alcance del Proyecto</h3>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {blocks.map((b: any, i: number) => (
+                        <div key={i} className={`rounded-xl border p-4 transition-all hover:shadow-sm ${
+                            b.isComplex ? 'border-[#FFE8BE] bg-[#FFE8BE]/5' : 'border-slate-100 bg-slate-50/30'
+                        }`}>
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="text-xs font-black text-slate-800">{b.name}</span>
+                                {b.isComplex && (
+                                    <span className="px-1.5 py-0.5 rounded-md bg-[#FFE8BE]/60 text-[9px] font-black uppercase tracking-wider text-[#473E28]">
+                                        +40%
+                                    </span>
+                                )}
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <span className={`text-[10px] font-bold uppercase tracking-wider ${b.isComplex ? 'text-[#B45309]' : 'text-slate-400'}`}>
+                                    {b.complexity}
+                                </span>
+                                <span className="text-sm font-black text-slate-900">{formatCurrency(b.price)}</span>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* Módulos Adicionales */}
+                <div className="bg-white rounded-2xl border border-slate-100 p-5">
+                    <div className="flex items-center gap-2 mb-4">
+                        <CheckCircle2 size={16} className="text-[#D4A843]" />
+                        <h3 className="text-xs font-black uppercase tracking-tighter text-slate-900">Módulos Activos</h3>
+                    </div>
+                    <div className="space-y-2">
+                        {modules.map((m: any, i: number) => (
+                            <div key={i} className="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
+                                <span className="text-xs font-bold text-slate-700">{m.name}</span>
+                                {m.active && <CheckCircle2 size={14} className="text-[#A7C7A3]" />}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Lo que NO incluye */}
+                <div className="bg-slate-50 rounded-2xl border border-slate-100 p-5">
+                    <div className="flex items-center gap-2 mb-4">
+                        <XCircle size={16} className="text-slate-400" />
+                        <h3 className="text-xs font-black uppercase tracking-tighter text-slate-500">Lo que NO incluye</h3>
+                    </div>
+                    <div className="space-y-2">
+                        {exclusions.map((ex: string, i: number) => (
+                            <div key={i} className="flex items-start gap-2">
+                                <div className="mt-1 w-1 h-1 rounded-full bg-slate-300 shrink-0" />
+                                <p className="text-[11px] text-slate-500 font-medium leading-relaxed">{ex}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            {/* Timeline Vertical de Fases */}
+            <div className="bg-white rounded-2xl border border-slate-100 p-5">
+                <div className="flex items-center gap-2 mb-5">
+                    <Clock size={16} className="text-[#D4A843]" />
+                    <h3 className="text-xs font-black uppercase tracking-tighter text-slate-900">Fases del Proyecto</h3>
+                </div>
+                <div className="space-y-0">
+                    {(() => {
+                        const phases = realPhases.length > 0
+                            ? realPhases.map((p: any) => ({
+                                name: p.phase_name,
+                                revisions: p.revision_limit,
+                                date: p.planned_start_date ? `${formatDateShort(p.planned_start_date)} → ${formatDateShort(p.planned_end_date)}` : 'Pendiente',
+                                status: p.status || 'planned',
+                                requiresApproval: p.requires_client_approval,
+                            }))
+                            : TECH_PHASES.map((p, idx) => ({
+                                ...p,
+                                status: idx === 0 ? 'pending' as const : 'locked' as const,
+                                requiresApproval: false,
+                            }))
+                        return phases.map((phase: any, i: number, arr: any[]) => {
+                            const isPending = phase.status === 'pending' || phase.status === 'planned'
+                            const isDone = phase.status === 'completed' || phase.status === 'approved'
+                            const isActive = phase.status === 'in_progress' || phase.status === 'in_review'
+                            const isLocked = phase.status === 'locked' || (!isDone && !isActive && !isPending)
+                            
+                            return (
+                                <div key={i} className="flex gap-4">
+                                    <div className="flex flex-col items-center">
+                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                                            isDone ? 'bg-[#A7C7A3] text-white' :
+                                            isActive ? 'bg-[#FFE8BE] text-[#473E28]' :
+                                            'bg-slate-100 text-slate-300'
+                                        }`}>
+                                            {isDone ? <Check size={12} /> : isLocked ? <Lock size={12} /> : <Unlock size={12} />}
+                                        </div>
+                                        {i < arr.length - 1 && (
+                                            <div className={`w-px flex-1 ${isDone ? 'bg-[#A7C7A3]/50' : 'bg-slate-100'} my-1`} />
+                                        )}
+                                    </div>
+                                    <div className={`pb-5 flex-1 ${isLocked ? 'opacity-50' : ''}`}>
+                                        <div className="flex items-center justify-between">
+                                            <h4 className="text-xs font-black text-slate-800">{phase.name}</h4>
+                                            <span className="text-[10px] font-bold text-slate-400">{phase.date}</span>
+                                        </div>
+                                        <div className="flex items-center gap-3 mt-1">
+                                            <span className="text-[10px] text-slate-400 font-medium">{phase.revisions} revisión{phase.revisions > 1 ? 'es' : ''} incluida</span>
+                                            {phase.requiresApproval && (
+                                                <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#F2C272]/15 text-[#B45309]">
+                                                    Aprobación cliente
+                                                </span>
+                                            )}
+                                            <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded ${
+                                                isDone ? 'bg-[#A7C7A3]/20 text-[#166534]' :
+                                                isActive ? 'bg-[#F2C272]/20 text-[#B45309]' :
+                                                'bg-slate-100 text-slate-400'
+                                            }`}>
+                                                {isDone ? 'Completado' : isActive ? 'En Curso' : 'Pendiente'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )
+                        })
+                    })()}
+                </div>
+            </div>
+        </div>
+    )
+}
+
+/* ─────────── TAB 5: INVERSIÓN ─────────── */
+
+function TabInversion({ opp }: { opp: any }) {
+    // DATA_API: opp.draft_jsonb totalCapex (desarrollo), totalOpex (suscripción), discount_applied
+    const draft = opp.draft_jsonb
+    const capex = draft?.totalCapex || FALLBACK_OPPORTUNITY.totalCapex
+    const opex = draft?.totalOpex || (draft ? 0 : FALLBACK_OPPORTUNITY.totalOpex)
+    const discountPct = opp.discount_applied || 0
+    const discountAmount = Math.round(capex * discountPct / 100)
+    const subtotal = capex - discountAmount
+    const igv = Math.round(subtotal * 0.18)
+    const finalTotal = subtotal + igv
+
+    const fin = opp.financials_jsonb || {}
+    const roi = fin.roi_estimate || FALLBACK_OPPORTUNITY.roi_estimate
+    const revenue = fin.revenue_potential || FALLBACK_OPPORTUNITY.revenue_potential
+    const terms = fin.payment_terms || FALLBACK_OPPORTUNITY.payment_terms
+    const notes = opp.meeting_notes || FALLBACK_OPPORTUNITY.meeting_notes
+
+    return (
+        <div className="space-y-5 animate-in fade-in duration-300">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* Desglose Factura */}
+                <div className="bg-white rounded-2xl border border-slate-100 p-5">
+                    <div className="flex items-center gap-2 mb-4">
+                        <FileText size={16} className="text-[#D4A843]" />
+                        <h3 className="text-xs font-black uppercase tracking-tighter text-slate-900">Desglose de Inversión</h3>
+                    </div>
+                    <div className="space-y-3">
+                        {/* Desarrollo — único pago con IGV */}
+                        <div className="flex justify-between items-center py-2 border-b border-slate-50">
+                            <div>
+                                <span className="text-xs text-slate-600 font-medium block">Desarrollo — Bloques + Módulos</span>
+                                <span className="text-[10px] text-slate-400 font-medium">Pago único • Incluye IGV</span>
+                            </div>
+                            <span className="text-xs font-bold text-slate-800">{formatCurrency(capex)}</span>
+                        </div>
+
+                        {/* Suscripción — separada, sin IGV, opcional */}
+                        {opex > 0 && (
+                            <div className="flex justify-between items-center py-2 border-b border-slate-50">
+                                <div className="flex items-center gap-2">
+                                    <div className="px-1.5 py-0.5 rounded bg-[#F2C272]/15 text-[10px] font-black uppercase tracking-wider text-[#B45309]">Opcional</div>
+                                    <div>
+                                        <span className="text-xs text-slate-600 font-medium block">Suscripción / Mantenimiento</span>
+                                        <span className="text-[10px] text-slate-400 font-medium">Servicio externo recurrente • Sin IGV</span>
+                                    </div>
+                                </div>
+                                <span className="text-xs font-bold text-slate-800">{formatCurrency(opex)}<span className="text-[10px] font-medium text-slate-400">/mes</span></span>
+                            </div>
+                        )}
+
+                        <div className="h-px bg-slate-100 my-2" />
+
+                        <div className="flex justify-between items-center">
+                            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Subtotal Desarrollo</span>
+                            <span className="text-sm font-black text-slate-800">{formatCurrency(capex)}</span>
+                        </div>
+                        {discountPct > 0 && (
+                            <div className="flex justify-between items-center">
+                                <span className="text-xs font-bold text-[#A7C7A3] uppercase tracking-wider">Descuento ({discountPct}%)</span>
+                                <span className="text-sm font-black text-[#A7C7A3]">- {formatCurrency(discountAmount)}</span>
+                            </div>
+                        )}
+                        <div className="flex justify-between items-center">
+                            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">IGV 18%</span>
+                            <span className="text-sm font-black text-slate-800">{formatCurrency(igv)}</span>
+                        </div>
+                        <div className="h-px bg-slate-200 my-2" />
+                        <div className="flex justify-between items-center">
+                            <span className="text-xs font-black uppercase tracking-widest text-slate-900">Total Inicial</span>
+                            <span className="text-xl font-black text-slate-900">{formatCurrency(finalTotal)}</span>
+                        </div>
+                        {opex > 0 && (
+                            <div className="flex justify-between items-center pt-1">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">+ Suscripción mensual</span>
+                                <span className="text-sm font-black text-[#B45309]">{formatCurrency(opex)}<span className="text-[10px] font-medium">/mes</span></span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Resumen Financiero */}
+                <div className="space-y-4">
+                    <div className="bg-white rounded-2xl border border-slate-100 p-5">
+                        <div className="flex items-center gap-2 mb-4">
+                            <BarChart3 size={16} className="text-[#D4A843]" />
+                            <h3 className="text-xs font-black uppercase tracking-tighter text-slate-900">Resumen Financiero</h3>
+                        </div>
+                        <div className="space-y-4">
+                            <div className="p-3 rounded-xl bg-slate-50">
+                                <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">ROI Estimado</span>
+                                <p className="text-sm font-black text-slate-800 mt-1">{roi}</p>
+                            </div>
+                            <div className="p-3 rounded-xl bg-slate-50">
+                                <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Potencial de Ingresos</span>
+                                <p className="text-sm font-black text-slate-800 mt-1">{revenue}</p>
+                            </div>
+                            <div className="p-3 rounded-xl bg-[#FFE8BE]/10 border border-[#FFE8BE]/30">
+                                <span className="text-[9px] font-black uppercase tracking-widest text-[#B45309]">Términos de Pago</span>
+                                <p className="text-sm font-black text-[#473E28] mt-1">{terms}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Notas de Reunión */}
+                    <div className="bg-white rounded-2xl border border-slate-100 p-5">
+                        <div className="flex items-center gap-2 mb-3">
+                            <MessageSquare size={16} className="text-slate-400" />
+                            <h3 className="text-xs font-black uppercase tracking-tighter text-slate-500">Notas de Reunión</h3>
+                        </div>
+                        <blockquote className="border-l-2 border-[#FFE8BE] pl-3 py-1">
+                            <p className="text-xs text-slate-600 font-medium italic leading-relaxed">&ldquo;{notes}&rdquo;</p>
+                        </blockquote>
+                    </div>
+                </div>
+            </div>
+
+            {/* Botones de Acción */}
+            <div className="flex items-center justify-center pt-2">
+                <button className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-slate-900 text-white text-xs font-black uppercase tracking-widest hover:bg-slate-800 transition-all active:scale-[0.98] shadow-lg shadow-slate-900/10">
+                    <FileText size={16} className="text-primary" /> Ver Contrato de Servicios
+                </button>
+            </div>
+        </div>
+    )
+}
+
+/* ─────────── TAB 6: ROADMAP ─────────── */
+
+function TabRoadmap({ opp, realPhases, hasRealPhases }: { opp: any, realPhases: any[], hasRealPhases: boolean }) {
+    const phases = realPhases
+
+
+
+    const phaseIcon = (key: string) => {
+        if (key.includes('discovery')) return Search
+        if (key.includes('wireframe')) return Layers
+        if (key.includes('design') || key.includes('diseno')) return Target
+        if (key.includes('develop') || key.includes('desarrollo')) return Code2
+        if (key.includes('qa') || key.includes('review')) return TestTube2
+        if (key.includes('launch') || key.includes('live')) return Rocket
+        return Calendar
     }
 
     return (
-        <div className={`w-full mx-auto bg-white min-h-screen text-slate-900 transition-all duration-500 overflow-hidden ${mode === 'mobile' ? 'max-w-[375px] shadow-2xl rounded-[40px] border-[8px] border-slate-800' : 'w-full shadow-lg'}`}>
-
-            {/* VIRTUAL BROWSER HEADER */}
-            {mode === 'desktop' && (
-                <div className="h-10 bg-slate-100 border-b flex items-center px-4 gap-2">
-                    <div className="flex gap-1.5">
-                        <div className="w-3 h-3 rounded-full bg-slate-300" />
-                        <div className="w-3 h-3 rounded-full bg-slate-300" />
-                        <div className="w-3 h-3 rounded-full bg-slate-300" />
-                    </div>
-                </div>
-            )}
-
-            {/* NAVBAR */}
-            <nav className="p-6 flex items-center justify-between border-b border-slate-100 sticky top-0 bg-white/80 backdrop-blur-md z-10">
-                <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center">
-                        <span className="text-white font-black text-xs">FX</span>
-                    </div>
-                    <span className="font-extrabold tracking-tighter text-sm uppercase">Fortex Portal</span>
-                </div>
-                <div className="flex gap-4 items-center">
-                    <div className="px-3 py-1 rounded-full bg-slate-100 text-[9px] font-black uppercase tracking-widest text-slate-400">Pórtico Privado</div>
-                </div>
-            </nav>
-
-            {/* HERO SECTION */}
-            <section className="px-6 py-12 md:px-8 md:py-24 text-center space-y-6">
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-[0.2em]">
-                    <Zap size={14} /> Solución Aura OS
-                </div>
-                <h1 className="text-2xl md:text-5xl font-black tracking-tighter text-slate-900 leading-[1.1] px-2">
-                    {headline}
-                </h1>
-                <div className="flex flex-col gap-2">
-                    <p className="text-sm md:text-xl text-slate-500 max-w-2xl mx-auto font-medium leading-relaxed px-4">
-                        {subheadline}
-                    </p>
-                    {profile?.industry && (
-                        <div className="flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 mt-2">
-                            <Building2 size={12} /> {profile.industry} • {profile.business_model}
-                        </div>
-                    )}
-                </div>
-            </section>
-
-            {/* CORE CONTENT */}
-            <div className="px-6 md:px-8 space-y-12 md:space-y-20 pb-32">
-
-                {/* SOCIO ESTRATÉGICO & ESTRATEGIA (Encapsulated Info) */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <section className="col-span-1 lg:col-span-1 bg-slate-50 rounded-[32px] p-8 border border-slate-100 space-y-6">
-                        <div className="flex items-center gap-3 border-b border-slate-200 pb-4">
-                            <Building2 size={20} className="text-primary" />
-                            <h2 className="text-sm font-black uppercase tracking-tighter">Socio Estratégico</h2>
-                        </div>
-                        <div className="space-y-6">
-                            <div>
-                                <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-2">Propuesta de Valor Colectiva</p>
-                                <p className="text-xs font-medium leading-relaxed text-slate-600 italic">
-                                    "{profile?.value_proposition || 'Identidad orientada al crecimiento y la innovación digital.'}"
-                                </p>
-                            </div>
-                            <div className="pt-4 border-t border-slate-100">
-                                <div className="flex items-center justify-between mb-4">
-                                    <div>
-                                        <p className="text-[8px] font-black uppercase text-slate-400 mb-1">Presencia Web</p>
-                                        <p className="text-[10px] font-bold text-slate-900 uppercase tracking-tighter">{profile?.digital_presence.website.quality || 'Pendiente'}</p>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="text-[8px] font-black uppercase text-slate-400 mb-1">Socio ID</p>
-                                        <p className="text-[10px] font-bold text-slate-900">{client?.ruc || 'S/N'}</p>
-                                    </div>
-                                </div>
-
-                                <div className="p-4 rounded-2xl bg-white border border-slate-100 shadow-inner group-hover:border-primary/20 transition-all">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <Globe size={12} className="text-primary" />
-                                        <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest">Enfoque de Mercado</p>
-                                    </div>
-                                    <p className="text-[11px] font-bold text-slate-900 leading-relaxed">
-                                        {profile?.target_market || 'No especificado'}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <section className="col-span-1 lg:col-span-2 bg-white rounded-[32px] p-8 border border-slate-100 shadow-sm relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl rounded-full" />
-                        <div className="flex items-center gap-3 border-b border-slate-100 pb-4 mb-6">
-                            <Lightbulb size={20} className="text-primary" />
-                            <h2 className="text-sm font-black uppercase tracking-tighter">Estrategia de Despliegue</h2>
-                        </div>
-                        <div className="space-y-12">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div>
-                                    <label className="text-[9px] font-black uppercase text-primary tracking-widest flex items-center gap-1.5 mb-1.5">
-                                        <Users size={10} /> Usuario Objetivo
-                                    </label>
-                                    <p className="text-xs font-bold text-slate-800 leading-relaxed">
-                                        {strategy?.target_user || 'Público general interesado en soluciones digitales.'}
-                                    </p>
-                                </div>
-                                <div>
-                                    <label className="text-[9px] font-black uppercase text-primary tracking-widest flex items-center gap-1.5 mb-1.5">
-                                        <Zap size={10} /> Mensaje Core
-                                    </label>
-                                    <p className="text-xs font-bold text-slate-800 leading-relaxed">
-                                        {strategy?.key_message || 'Innovación tecnológica para el siguiente nivel.'}
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="bg-primary/10 border border-primary/20 rounded-[2rem] p-8 relative overflow-hidden group/item">
-                                <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-primary/20 blur-3xl rounded-full" />
-                                <div className="relative z-10">
-                                    <p className="text-[9px] font-black uppercase text-primary/60 tracking-widest mb-3">Propuesta de Valor Estratégica</p>
-                                    <p className="text-sm font-bold leading-relaxed text-sky-950 italic">
-                                        "{strategy?.value_proposition || 'Transformación digital integral basada en resultados.'}"
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
+        <div className="space-y-5 animate-in fade-in duration-300">
+            <div className="bg-white rounded-2xl border border-slate-100 p-5">
+                <div className="flex items-center gap-2 mb-6">
+                    <Calendar size={16} className="text-[#D4A843]" />
+                    <h3 className="text-xs font-black uppercase tracking-tighter text-slate-900">Cronograma del Proyecto</h3>
                 </div>
 
-                {/* PROYECCIÓN DE VALOR (Financials) */}
-                {opportunity.financials_jsonb?.roi_estimate && (
-                    <section className="bg-primary rounded-[32px] md:rounded-[40px] p-8 md:p-12 text-sky-950 relative overflow-hidden group border border-primary-dark/10">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-white/20 blur-[100px] rounded-full -mr-20 -mt-20 group-hover:bg-white/30 transition-all duration-1000" />
-                        <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-                            <div className="space-y-4">
-                                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-950/10 text-sky-950 text-[9px] font-black uppercase tracking-widest border border-sky-950/5">
-                                    <BarChart3 size={12} /> Proyección de Impacto
-                                </div>
-                                <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tighter leading-tight">
-                                    Retorno de Inversión <br className="hidden md:block" /> {opportunity.financials_jsonb.roi_estimate}
-                                </h2>
-                                <p className="text-sky-950/60 text-sm font-medium">
-                                    Solución diseñada para maximizar la eficiencia operativa y habilitar nuevos canales de ingresos.
-                                </p>
-                            </div>
-                            <div className="grid grid-cols-1 gap-4">
-                                <div className="p-6 rounded-3xl bg-white/20 border border-white/30 backdrop-blur-sm shadow-inner">
-                                    <p className="text-[9px] font-black uppercase text-sky-950/40 tracking-widest mb-1">Potencial Detectado</p>
-                                    <p className="text-xl font-black text-sky-950">{opportunity.financials_jsonb.revenue_potential}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-                )}
+                {hasRealPhases ? (
+                    <div className="space-y-0">
+                        {phases.map((phase: any, i: number) => {
+                            const Icon = phaseIcon(phase.phase_key)
+                            const isLast = i === phases.length - 1
+                            const dateRange = `${formatDateShort(phase.planned_start_date)} – ${formatDateShort(phase.planned_end_date)}`
+                            
+                            const isDone = phase.status === 'completed' || phase.status === 'approved'
+                            const isActive = phase.status === 'in_progress' || phase.status === 'in_review'
+                            const isPending = !isDone && !isActive
 
-                {/* DISCOVERY / PAIN POINTS */}
-                {(opportunity.discovery_jsonb?.pain_points || []).length > 0 && (
-                    <div className="space-y-8">
-                        <div className="flex items-center gap-3">
-                            <Target size={20} className="text-primary md:w-6 md:h-6" />
-                            <h2 className="text-lg md:text-xl font-black uppercase tracking-tighter">Análisis de Desafíos Actuales</h2>
-                        </div>
-                        <div className="grid grid-cols-1 gap-4">
-                            {opportunity.discovery_jsonb?.pain_points.map((point, i) => (
-                                <div key={i} className="p-6 md:p-8 rounded-[32px] bg-slate-50 border border-slate-100 flex flex-col md:flex-row gap-6 items-start hover:border-primary/20 transition-all">
-                                    <div className="flex-1 space-y-2">
-                                        <div className="flex items-center gap-3 mb-2">
-                                            <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest 
-                                                ${point.severity === 'Alta' ? 'bg-red-100 text-red-600' :
-                                                    point.severity === 'Baja' ? 'bg-emerald-100 text-emerald-600' :
-                                                        'bg-amber-100 text-amber-600'}`}>
-                                                {point.severity}
-                                            </span>
-                                            <span className="text-[10px] font-black text-slate-300">#0{i + 1}</span>
-                                        </div>
-                                        <h3 className="text-base font-black text-slate-900 leading-tight uppercase">{point.problem}</h3>
-                                        <p className="text-sm text-slate-500 font-medium leading-relaxed italic">"{point.impact}"</p>
-                                    </div>
-                                    <div className="w-full md:w-px md:h-16 bg-slate-200 shrink-0" />
-                                    <div className="w-full md:w-48 pt-1">
-                                        <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-2">Estado Aura OS</p>
-                                        <div className="flex items-center gap-2 text-emerald-600">
-                                            <CheckCircle2 size={14} />
-                                            <span className="text-[10px] font-black uppercase tracking-tight">Mitigación Planeada</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {/* MARKET CONTEXT (Trend Analysis) */}
-                {(insights?.market_notes || []).length > 0 && (
-                    <div className="space-y-8">
-                        <div className="flex items-center gap-3">
-                            <BarChart3 size={20} className="text-primary md:w-6 md:h-6" />
-                            <h2 className="text-lg md:text-xl font-black uppercase tracking-tighter">Contexto de Mercado</h2>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {insights?.market_notes.map((note, i) => (
-                                <div key={i} className="p-6 rounded-[2rem] bg-slate-50 relative overflow-hidden border border-slate-100 hover:border-primary/30 transition-all group">
-                                    <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 blur-2xl rounded-full" />
-                                    <div className="flex items-center gap-2 mb-4">
-                                        <div className="w-1.5 h-6 bg-primary rounded-full" />
-                                        <h3 className="text-xs font-black uppercase tracking-widest text-slate-900">{note.trend}</h3>
-                                    </div>
-                                    <p className="text-xs leading-relaxed text-slate-500 font-medium italic relative z-10">
-                                        {note.impact}
-                                    </p>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {/* SOLUTION SCOPE */}
-                <section className="space-y-6 md:space-y-8">
-                    <div className="flex items-center gap-3">
-                        <ShieldCheck size={20} className="text-primary md:w-6 md:h-6" />
-                        <h2 className="text-lg md:text-xl font-black uppercase tracking-tighter">Alcance Técnico Aura OS</h2>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-4 md:gap-6">
-                        {draft?.blocks.map((block, idx) => {
-                            const item = getCatalogItem(opportunity.dimension === 'landing' ? block.complexity_id : block.catalog_item_id)
                             return (
-                                <div key={idx} className="p-5 md:p-6 rounded-3xl border border-slate-100 bg-white hover:border-primary/30 transition-all shadow-sm group">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <h3 className="font-black text-slate-900 text-base md:text-lg uppercase tracking-tight">{block.name || `Hito ${idx + 1}`}</h3>
-                                        <CheckCircle2 size={18} className="text-primary opacity-40 group-hover:opacity-100 transition-all md:w-5 md:h-5" />
+                                <div key={phase.phase_key || i} className="flex gap-4">
+                                    <div className="flex flex-col items-center">
+                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ring-4 transition-all ${
+                                            isDone ? 'bg-[#A7C7A3] text-white ring-[#A7C7A3]/30' :
+                                            isActive ? 'bg-[#FFE8BE] text-[#473E28] ring-[#FFE8BE]/30' :
+                                            'bg-slate-100 text-slate-300 ring-slate-100'
+                                        }`}>
+                                            <Icon size={16} />
+                                        </div>
+                                        {!isLast && (
+                                            <div className={`w-0.5 flex-1 my-1 ${isDone ? 'bg-[#A7C7A3]/40' : 'bg-slate-100'}`} />
+                                        )}
                                     </div>
-                                    <p className="text-xs md:text-sm text-slate-500 font-medium mb-4 leading-relaxed">
-                                        {item?.client_label || item?.description || 'Implementación técnica optimizada.'}
-                                    </p>
-                                    <div className="flex flex-wrap gap-2">
-                                        <span className="px-2 py-1 rounded-lg bg-slate-50 text-[9px] md:text-[10px] font-black uppercase text-slate-400 border border-slate-200">High Performance</span>
-                                        <span className="px-2 py-1 rounded-lg bg-slate-50 text-[9px] md:text-[10px] font-black uppercase text-slate-400 border border-slate-200">SEO Optimized</span>
+                                    <div className="pb-6 flex-1">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                                                isDone ? 'bg-[#A7C7A3]/10 text-[#166534]' :
+                                                isActive ? 'bg-[#F2C272]/15 text-[#B45309]' :
+                                                'bg-slate-100 text-slate-400'
+                                            }`}>
+                                                {isDone ? 'Completado' : isActive ? 'En Curso' : 'Pendiente'}
+                                            </span>
+                                            <span className="text-[10px] font-bold text-slate-400">{dateRange}</span>
+                                        </div>
+                                        <h4 className="text-sm font-black text-slate-800">{phase.phase_name}</h4>
+                                        <div className="flex items-center gap-3 mt-1">
+                                            <span className="text-xs text-slate-500 font-medium">
+                                                {phase.duration_days} día{phase.duration_days !== 1 ? 's' : ''}
+                                            </span>
+                                            <span className="text-xs text-slate-400">·</span>
+                                            <span className="text-xs text-slate-500 font-medium">
+                                                {phase.revision_limit} revisión{phase.revision_limit !== 1 ? 'es' : ''}
+                                            </span>
+                                            {phase.requires_client_approval && (
+                                                <>
+                                                    <span className="text-xs text-slate-400">·</span>
+                                                    <span className="text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#F2C272]/15 text-[#B45309]">
+                                                        Requiere aprobación
+                                                    </span>
+                                                </>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             )
                         })}
                     </div>
-                </section>
+                ) : (
+                    <div className="space-y-0">
+                        {ROADMAP_ITEMS.map((item, i) => {
+                            const Icon = item.icon
+                            const isPast = item.phase === 'past'
+                            const isPresent = item.phase === 'present'
+                            const isFuture = item.phase === 'future'
 
-                {/* ENTREGABLES Y TIEMPOS */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
-                    <div className="space-y-6">
-                        <div className="flex items-center gap-3">
-                            <FileText size={20} className="text-primary md:w-[22px] md:h-[22px]" />
-                            <h3 className="text-lg font-black uppercase tracking-tighter">Entregables Claros</h3>
-                        </div>
-                        <div className="px-1">
-                            {renderList(opportunity.deliverables || '')}
-                        </div>
-                    </div>
-
-                    <div className="space-y-6">
-                        <div className="flex items-center gap-3">
-                            <Clock size={20} className="text-primary md:w-[22px] md:h-[22px]" />
-                            <h3 className="text-lg font-black uppercase tracking-tighter">Cronograma Proyectado</h3>
-                        </div>
-                        <div className="bg-primary/5 border border-primary/10 rounded-[32px] p-6 md:p-8">
-                            <p className="text-xs md:text-sm font-bold text-slate-400 mb-1 md:mb-2 uppercase tracking-widest">Tiempo estimado:</p>
-                            <p className="text-xl md:text-2xl font-black text-sky-950 mb-6">{opportunity.delivery_time_text || '4 Semanas'}</p>
-                            <div className="space-y-4">
-                                <div className="flex justify-between items-center pb-3 border-b border-primary/10 uppercase tracking-tighter text-[9px] md:text-[10px] font-black text-sky-950/60">
-                                    <span>Revisiones</span>
-                                    <span>{opportunity.revision_rounds || '2 Rondas'}</span>
+                            return (
+                                <div key={i} className="flex gap-4">
+                                    <div className="flex flex-col items-center">
+                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-all ${
+                                            isPast ? 'bg-[#A7C7A3] text-white' :
+                                            isPresent ? 'bg-[#FFE8BE] text-[#473E28] ring-4 ring-[#FFE8BE]/30' :
+                                            'bg-slate-100 text-slate-300'
+                                        }`}>
+                                            <Icon size={16} />
+                                        </div>
+                                        {i < ROADMAP_ITEMS.length - 1 && (
+                                            <div className={`w-0.5 flex-1 my-1 ${isPast ? 'bg-[#A7C7A3]/40' : 'bg-slate-100'}`} />
+                                        )}
+                                    </div>
+                                    <div className={`pb-6 flex-1 ${isFuture ? 'opacity-50' : ''}`}>
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                                                isPast ? 'bg-[#A7C7A3]/10 text-[#166534]' :
+                                                isPresent ? 'bg-[#F2C272]/15 text-[#B45309]' :
+                                                'bg-slate-100 text-slate-400'
+                                            }`}>
+                                                {isPast ? 'Completado' : isPresent ? 'En curso' : 'Pendiente'}
+                                            </span>
+                                            <span className="text-[10px] font-bold text-slate-400">{item.date}</span>
+                                        </div>
+                                        <h4 className="text-sm font-black text-slate-800">{item.title}</h4>
+                                        <p className="text-xs text-slate-500 font-medium leading-relaxed mt-1">{item.description}</p>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
+                            )
+                        })}
+                    </div>
+                )}
+            </div>
+        </div>
+    )
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPONENTE PRINCIPAL
+   ═══════════════════════════════════════════════════════════════ */
+
+export function ClientPortalView({ opportunity, client, catalog, phases: phasesProp, mode = 'desktop', activeTab: externalTab, onTabChange, hideHeader = false }: Props) {
+    const [internalTab, setInternalTab] = useState<TabId>('resumen')
+    
+    const activeTab = externalTab || internalTab
+    const setActiveTab = (tab: TabId) => {
+        if (onTabChange) {
+            onTabChange(tab)
+        } else {
+            setInternalTab(tab)
+        }
+    }
+
+    // Usar datos reales o fallbacks
+    const opp = opportunity || (FALLBACK_OPPORTUNITY as any)
+    const status = opp.status || 'discovery'
+    
+    // Normalizar fases: si vienen por prop (proyectos), usarlas. Si no, usar las del JSONB (oportunidades).
+    const realPhases = phasesProp || opp.phases_plan_jsonb || []
+    const hasRealPhases = realPhases.length > 0
+
+    return (
+        <div className={`w-full mx-auto bg-[#F9FAFB] min-h-screen text-slate-900 transition-all duration-500 overflow-hidden ${
+            mode === 'mobile' ? 'max-w-[375px] shadow-2xl rounded-[40px] border-[8px] border-slate-800' : 'w-full shadow-lg'
+        }`}>
+
+            {/* Virtual browser header (solo desktop y si no se oculta el header real) */}
+            {mode === 'desktop' && !hideHeader && (
+                <div className="h-8 bg-slate-100 border-b border-slate-200 flex items-center px-4 gap-2">
+                    <div className="flex gap-1.5">
+                        <div className="w-2.5 h-2.5 rounded-full bg-slate-300" />
+                        <div className="w-2.5 h-2.5 rounded-full bg-slate-300" />
+                        <div className="w-2.5 h-2.5 rounded-full bg-slate-300" />
                     </div>
                 </div>
+            )}
 
-                {/* CALL TO ACTION */}
-                <section className="bg-primary rounded-[32px] md:rounded-[40px] p-8 md:p-16 text-center text-primary-foreground">
-                    <h2 className="text-xl md:text-3xl font-black tracking-tighter mb-3 md:mb-4 uppercase leading-tight">¿Coreografiamos el inicio?</h2>
-                    <p className="text-primary-foreground/70 mb-8 max-w-md mx-auto text-xs md:text-sm font-bold">Inversión calculada según arquitectura seleccionada.</p>
-                    <div className="flex flex-col items-center justify-center gap-6">
-                        <button className="w-full md:w-auto px-10 py-5 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-3 hover:scale-105 transition-all shadow-xl">
-                            Aprobar y Sincronizar <ArrowRight size={16} />
-                        </button>
-                        <div className="space-y-1">
-                            <p className="text-[10px] font-black uppercase opacity-60 tracking-widest">Inversión Final</p>
-                            <p className="text-lg font-black tabular-nums">S/ {draft?.totalCalculated.toLocaleString()}</p>
-                            {opportunity.financials_jsonb?.payment_terms && (
-                                <p className="text-[9px] font-bold text-primary-foreground/50 uppercase mt-2 italic">
-                                    {opportunity.financials_jsonb.payment_terms}
-                                </p>
-                            )}
-                        </div>
-                    </div>
-                </section>
-            </div>
+            {/* Header Sticky del Portal (solo si no se oculta) */}
+            {!hideHeader && <DashboardHeader opp={opp} client={client} status={status} />}
 
-            {/* FOOTER */}
-            <footer className="p-8 border-t border-slate-100 text-center">
+            {/* Navegación por Tabs */}
+            <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+
+            {/* Contenido del Tab Activo */}
+            <main className="px-4 py-5">
+                {activeTab === 'resumen' && <TabResumenEjecutivo opp={opp} client={client} phases={realPhases} />}
+                {activeTab === 'inteligencia' && <TabInteligenciaMercado client={client} />}
+                {activeTab === 'estrategia' && <TabEstrategiaDigital opp={opp} client={client} />}
+                {activeTab === 'tecnica' && <TabPropuestaTecnica opp={opp} catalog={catalog} phases={realPhases} />}
+                {activeTab === 'inversion' && <TabInversion opp={opp} />}
+                {activeTab === 'roadmap' && <TabRoadmap opp={opp} realPhases={realPhases} hasRealPhases={hasRealPhases} />}
+            </main>
+
+            {/* Footer */}
+            <footer className="px-4 py-6 border-t border-slate-100 bg-white text-center">
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-300">© FORTEX DIGITAL SOLUTIONS • AURA OS v2.0</p>
+                <p className="text-[9px] text-slate-300 mt-1 font-medium">Portal estratégico confidencial</p>
             </footer>
 
             <style jsx global>{`
-                @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700;900&display=swap');
-                
-                .font-montserrat {
-                    font-family: 'Montserrat', sans-serif;
-                }
-                
-                * {
-                    font-family: 'Montserrat', sans-serif !important;
-                }
+                .no-scrollbar::-webkit-scrollbar { display: none; }
+                .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
             `}</style>
         </div>
     )
