@@ -1,20 +1,23 @@
 Retrieving project…
 Deploying fortexs-projects/aura
-Uploading [--------------------] (0.0B/54B)
-Uploading [====================] (54.0B/54B)
-Inspect: https://vercel.com/fortexs-projects/aura/9NxoWc2wiLaPvggsYQrQZtecADpE [3s]
-Production: https://aura-n2it4ran5-fortexs-projects.vercel.app [3s]
-https://aura-n2it4ran5-fortexs-projects.vercel.appBuilding...
+Uploading [--------------------] (0.0B/60.9KB)
+Uploading [=====---------------] (17.8KB/60.9KB)
+Uploading [===========---------] (33.8KB/60.9KB)
+Uploading [================----] (49.8KB/60.9KB)
+Uploading [====================] (60.9KB/60.9KB)
+Inspect: https://vercel.com/fortexs-projects/aura/aY9EY4vRveDnj5Hdpvk6WiDKbAaQ [4s]
+Production: https://aura-cz5pm7tax-fortexs-projects.vercel.app [4s]
+https://aura-cz5pm7tax-fortexs-projects.vercel.appBuilding...
 Building...
 Building: Running build in Washington, D.C., USA (East) – iad1
 Building: Build machine configuration: 2 cores, 8 GB
 Building: Retrieving list of deployment files...
-Building: Downloading 1096 deployment files...
+Building: Downloading 1097 deployment files...
 Building: Restored build cache from previous deployment (3Lc3Ko8vwf4HDDi27CXaRWQhDKLZ)
 Building: Running "vercel build"
 Building: Vercel CLI 51.6.1
 Building: Installing dependencies...
-Building: up to date in 1s
+Building: up to date in 974ms
 Building: 246 packages are looking for funding
 Building: run `npm fund` for details
 Building: Detected Next.js version: 16.2.4
@@ -26,44 +29,18 @@ Building: ▲ Next.js 16.2.4 (Turbopack)
 Building: - Environments: .env
 Building: ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
 Building: Creating an optimized production build ...
-Building: Error: Can't resolve '../styles/themes/ocean.css' in '/vercel/path0/src/app'
-Building: [at finishWithoutResolve (/vercel/path0/node_modules/enhanced-resolve/lib/Resolver.js:587:18)]
-Building: [at /vercel/path0/node_modules/enhanced-resolve/lib/Resolver.js:679:14]
-Building: [at /vercel/path0/node_modules/enhanced-resolve/lib/Resolver.js:740:5]
-Building: [at eval (eval at create (/vercel/path0/node_modules/tapable/lib/HookCodeFactory.js:31:10), <anonymous>:15:1)]
-Building: [at /vercel/path0/node_modules/enhanced-resolve/lib/Resolver.js:740:5]
-Building: [at eval (eval at create (/vercel/path0/node_modules/tapable/lib/HookCodeFactory.js:31:10), <anonymous>:27:1)]
-Building: [at /vercel/path0/node_modules/enhanced-resolve/lib/DescriptionFilePlugin.js:89:43]
-Building: [at /vercel/path0/node_modules/enhanced-resolve/lib/Resolver.js:740:5]
-Building: [at eval (eval at create (/vercel/path0/node_modules/tapable/lib/HookCodeFactory.js:31:10), <anonymous>:15:1)]
-Building: [at /vercel/path0/node_modules/enhanced-resolve/lib/Resolver.js:740:5] {
-Building: details: "resolve '../styles/themes/ocean.css' in '/vercel/path0/src/app'\n" +
-Building: '  using description file: /vercel/path0/package.json (relative path: ./src/app)\n' +
-Building: '    using description file: /vercel/path0/package.json (relative path: ./src/styles/themes/ocean.css)\n' +
-Building: '      no extension\n' +
-Building: "        /vercel/path0/src/styles/themes/ocean.css doesn't exist\n" +
-Building: '      .css\n' +
-Building: "        /vercel/path0/src/styles/themes/ocean.css.css doesn't exist\n" +
-Building: '      as directory\n' +
-Building: "        /vercel/path0/src/styles/themes/ocean.css doesn't exist"
-Building: }
-Building: > Build error occurred
-Building: Error: Turbopack build failed with 1 errors:
-Building: ./src/app/globals.css
-Building: Error evaluating Node.js code
-Building: CssSyntaxError: tailwindcss: /vercel/path0/src/app/globals.css:1:1: Can't resolve '../styles/themes/ocean.css' in '/vercel/path0/src/app'
-Building: at Input.error (node_modules/postcss/lib/input.js:135:16) [/vercel/path0/.next/build/chunks/node_modules_13sb.px._.js:4667:22]
-Building: at error (node_modules/postcss/lib/node.js:146:32) [/vercel/path0/.next/build/chunks/node_modules_13sb.px._.js:943:38]
-Building: [at Object.Once (/vercel/path0/node_modules/@tailwindcss/postcss/dist/index.js:10:6913)]
-Building: [at process.processTicksAndRejections (node:internal/process/task_queues:104:5)]
-Building: at async LazyResult.runAsync (node_modules/postcss/lib/lazy-result.js:293:11) [/vercel/path0/.next/build/chunks/node_modules_13sb.px._.js:6230:21]
-Building: at async transform (turbopack:///[turbopack-node]/transforms/postcss.ts:70:34) [/vercel/path0/.next/build/chunks/[root-of-the-server]__0d-m0h0._.js:146:36]
-Building: at async run (turbopack:///[turbopack-node]/child_process/evaluate.ts:89:23) [/vercel/path0/.next/build/chunks/[root-of-the-server]__0ubbtyl._.js:443:31]
-Building: Import trace:
-Building: Client Component Browser:
-Building: ./src/app/globals.css [Client Component Browser]
-Building: ./src/app/layout.tsx [Server Component]
-Building: at async transform (turbopack:///[turbopack-node]/transforms/postcss.ts:70:34) [/vercel/path0/.next/build/chunks/[root-of-the-server]__0d-m0h0._.js:146:36])
-Building: at async run (turbopack:///[turbopack-node]/child_process/evaluate.ts:89:23) [/vercel/path0/.next/build/chunks/[root-of-the-server]__0ubbtyl._.js:443:31])
+Building: ✓ Compiled successfully in 15.3s
+Building: Running TypeScript ...
+Building: Failed to type check.
+Building: ./src/app/(workspace)/desarrollo/clientes/[id]/ClientDetailContainer.tsx:301:49
+Building: Type error: 'result.data' is possibly 'undefined'.
+Building: 299 |         if (result.success) {
+Building: 300 |             setCompetitorToConvert(null)
+Building: > 301 |             router.push(`/desarrollo/clientes/${result.data.id}`)
+Building: |                                                 ^
+Building: 302 |         } else {
+Building: 303 |             alert('Error al convertir: ' + result.error)
+Building: 304 |         }
+Building: Next.js build worker exited with code: 1 and signal: null
 Building: Error: Command "npm run build" exited with 1
 Error: Command "npm run build" exited with 1

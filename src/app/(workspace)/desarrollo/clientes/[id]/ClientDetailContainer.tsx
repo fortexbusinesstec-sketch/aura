@@ -296,7 +296,7 @@ export function ClientDetailContainer({ initialClient, opportunities }: ClientDe
         const result = await convertCompetitorAction(newClientData)
         setIsConverting(false)
 
-        if (result.success) {
+        if (result.success && result.data) {
             setCompetitorToConvert(null)
             router.push(`/desarrollo/clientes/${result.data.id}`)
         } else {
@@ -889,7 +889,7 @@ Sé objetivo, técnico y directo. Evita introducciones innecesarias.`
                 isOpen={!!competitorToConvert}
                 onClose={() => setCompetitorToConvert(null)}
                 title="Convertir Competidor en Perfil"
-                className="max-w-lg"
+                maxWidth="max-w-lg"
             >
                 <div className="space-y-6">
                     <div className="flex items-center gap-4 p-6 rounded-3xl bg-primary/5 border border-primary/10">

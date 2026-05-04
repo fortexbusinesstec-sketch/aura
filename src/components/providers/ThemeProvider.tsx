@@ -53,12 +53,12 @@ export function applyTheme(themeId: string) {
         // Si es el 'custom', aplicar sus colores
         if (themeId === 'custom') {
             const colors = getCustomColorsFromCookie()
-            Object.entries(colors).forEach(([k, v]) => html.style.setProperty(`--${k}`, v))
+            Object.entries(colors).forEach(([k, v]) => html.style.setProperty(`--${k}`, v as string))
         }
     } else if (importedTheme) {
         // Aplicar las variables del tema importado
         Object.entries(importedTheme.colors).forEach(([k, v]) => {
-            html.style.setProperty(`--${k}`, v)
+            html.style.setProperty(`--${k}`, v as string)
         })
     }
 }
