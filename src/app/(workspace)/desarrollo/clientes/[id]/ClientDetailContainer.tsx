@@ -289,7 +289,8 @@ export function ClientDetailContainer({ initialClient, opportunities }: ClientDe
             email: '',
             client_profile_jsonb: newProfile,
             client_insights_jsonb: newInsights,
-            portal_token: Math.random().toString(36).substring(2, 15)
+            portal_token: Math.random().toString(36).substring(2, 15),
+            pin_code: null
         }
 
         const result = await convertCompetitorAction(newClientData)

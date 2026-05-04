@@ -1,0 +1,46 @@
+/**
+ * ══════════════════════════════════════════════════════
+ * AURA OS — Tema "Ocean"
+ * ══════════════════════════════════════════════════════ */
+
+.ocean-theme {
+  /* ── 1. FONDOS Y TEXTOS BASE ─────────────────────── */
+  --background: 198 67% 95%;
+  --foreground: 206 57% 12%;
+
+  /* ── 2. PANELES Y TARJETAS ───────────────────────── */
+  --card: 0 0% 100%;
+  --card-foreground: 206 57% 12%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 206 57% 12%;
+
+  /* ── 3. ACCIÓN PRIMARIA Y BOTONES ────────────────── */
+  --primary: 199 89% 48%;
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 198 40% 90%;
+  --secondary-foreground: 206 57% 12%;
+
+  /* ── 4. ESTADO MUTED ─────────────────────────────── */
+  --muted: 198 30% 88%;
+  --muted-foreground: 206 20% 40%;
+
+  /* ── 5. ACCENT / HOVER ───────────────────────────── */
+  --accent: 199 80% 92%;
+  --accent-foreground: 199 89% 48%;
+
+  /* ── 6. ESTADOS Y ALERTAS ───────────────────────── */
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --success: 142 70% 45%;
+  --success-foreground: 142 80% 15%;
+  --warning: 38 92% 50%;
+  --warning-foreground: 38 90% 10%;
+
+  /* ── 7. ESTRUCTURA: BORDES Y FOCOS ──────────────── */
+  --border: 198 30% 85%;
+  --input: 198 30% 85%;
+  --ring: 199 89% 48%;
+
+  --radius: 0.75rem;
+}
