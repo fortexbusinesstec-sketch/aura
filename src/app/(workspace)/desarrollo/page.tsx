@@ -118,7 +118,7 @@ export default function DesarrolloPage() {
                                     <Link
                                         key={block.title}
                                         href={block.href}
-                                        className="group relative overflow-hidden rounded-2xl border border-border bg-card p-4 transition-all hover:border-primary/50 hover:shadow-md active:scale-[0.98]"
+                                        className="group relative overflow-hidden rounded-2xl border border-border bg-card p-4 transition-all hover:border-primary/60 hover:shadow-[0_0_25px_hsl(var(--primary)/0.4)] active:scale-[0.98]"
                                     >
                                         <div className="flex items-start gap-3">
                                             <div
@@ -128,7 +128,7 @@ export default function DesarrolloPage() {
                                                 <Icon size={20} />
                                             </div>
                                             <div className="min-w-0">
-                                                <h3 className="font-bold text-sm text-foreground group-hover:text-primary transition-colors truncate">
+                                                <h3 className="font-bold text-sm text-foreground transition-colors truncate">
                                                     {block.title}
                                                 </h3>
                                                 <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground line-clamp-2">

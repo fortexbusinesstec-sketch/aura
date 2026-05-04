@@ -196,25 +196,33 @@ export default function LeadsPage() {
                                             </div>
                                         </div>
 
-                                        {/* Roadmap Summary */}
+                                        {/* Roadmap Summary - Optimized for Admin Mobile */}
                                         {op.roadmap_configured && phases.length > 0 && (
-                                            <div className="rounded-xl bg-secondary/30 border border-border/40 p-3 space-y-2">
-                                                <div className="flex items-center gap-1.5 text-[9px] font-black text-muted-foreground uppercase tracking-widest">
-                                                    <Route size={10} /> Roadmap Configurado
+                                            <div className="rounded-xl bg-secondary/30 border border-border/40 p-3 space-y-2 group/roadmap">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-1.5 text-[9px] font-black text-muted-foreground uppercase tracking-widest">
+                                                        <Route size={10} /> Roadmap
+                                                    </div>
+                                                    <div className="hidden sm:flex items-center gap-1.5 text-[9px] font-bold text-muted-foreground">
+                                                        Estructura de fases
+                                                    </div>
                                                 </div>
+                                                
                                                 <div className="flex items-center gap-3 text-[10px] font-bold text-foreground">
-                                                    <span className="flex items-center gap-1">
+                                                    <span className="flex items-center gap-1 bg-background/50 px-2 py-0.5 rounded-md">
                                                         <Clock size={10} className="text-muted-foreground" />
-                                                        {phases.length} fases · {totalDays} días
+                                                        {phases.length} fases · {totalDays}d
                                                     </span>
-                                                    <span className="text-border">|</span>
+                                                    <span className="text-border/40">|</span>
                                                     <span className="flex items-center gap-1">
                                                         <RotateCcw size={10} className="text-muted-foreground" />
-                                                        {totalRevisions} revisiones
+                                                        {totalRevisions} rev.
                                                     </span>
                                                 </div>
-                                                <div className="flex flex-wrap gap-1">
-                                                    {phases.slice(0, 4).map((phase) => (
+                                                
+                                                {/* Phase badges - Hidden on mobile for admins */}
+                                                <div className="hidden sm:flex flex-wrap gap-1 pt-1">
+                                                    {phases.slice(0, 3).map((phase) => (
                                                         <span
                                                             key={phase.phase_key}
                                                             className="px-1.5 py-0.5 rounded bg-background border border-border/50 text-[9px] font-bold text-foreground"
@@ -222,9 +230,9 @@ export default function LeadsPage() {
                                                             {phase.phase_name}
                                                         </span>
                                                     ))}
-                                                    {phases.length > 4 && (
+                                                    {phases.length > 3 && (
                                                         <span className="px-1.5 py-0.5 rounded bg-background border border-border/50 text-[9px] font-bold text-muted-foreground">
-                                                            +{phases.length - 4}
+                                                            +{phases.length - 3}
                                                         </span>
                                                     )}
                                                 </div>

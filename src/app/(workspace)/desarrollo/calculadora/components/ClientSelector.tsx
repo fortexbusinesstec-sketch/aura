@@ -13,7 +13,7 @@ export function ClientSelector() {
         if (!search) return clients.slice(0, 5)
         return clients.filter(c =>
             c.razon_social.toLowerCase().includes(search.toLowerCase()) ||
-            c.ruc.includes(search)
+            (c.ruc && c.ruc.includes(search))
         ).slice(0, 8)
     }, [clients, search])
 

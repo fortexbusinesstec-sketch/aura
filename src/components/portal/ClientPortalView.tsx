@@ -64,12 +64,12 @@ interface Props {
 
 export type TabId = 'resumen' | 'inteligencia' | 'estrategia' | 'tecnica' | 'inversion' | 'roadmap'
 
-/* ─────────────────── DATOS DE EJEMPLO (GRUPO NORTE) ───────────────────
+/* ─────────────────── DATOS DE EJEMPLO (CLIENTE) ───────────────────
    Estos valores se usan como fallback cuando opportunity no tiene
    datos completos. En producción, todo viene del store/API.          */
 
 const FALLBACK_CLIENT = {
-    razon_social: 'Grupo Norte Facility Peru S.A.C.',
+    razon_social: 'Empresa Cliente S.A.C.',
     ruc: '20565993390',
     industry: 'Facility Management / Servicios Integrados de Mantenimiento y Limpieza',
     business_model: 'B2B' as const,
@@ -84,7 +84,7 @@ const FALLBACK_CLIENT = {
 }
 
 const FALLBACK_INSIGHTS = {
-    key_finding: 'Grupo Norte tiene operación sólida (40+ años) pero presencia digital inexistente frente a competidores que capturan leads B2B activamente. El riesgo no es la competencia directa en precio, sino la invisibilidad digital.',
+    key_finding: 'El cliente tiene una operación sólida en su sector pero su presencia digital es limitada frente a competidores que capturan leads activamente. El riesgo principal es la invisibilidad digital en el ecosistema actual.',
     diagnosis: 'Operador B2B tradicional en un mercado que se digitaliza. No compite contra limpiadoras locales; compite contra la irrelevancia digital.',
     competitors: [
         { name: 'Sodexo Perú', segment: 'Premium' as const, strength: 'Command Center, +12k colaboradores', threat: 'high' as const },
@@ -111,7 +111,7 @@ const FALLBACK_INSIGHTS = {
 
 const FALLBACK_OPPORTUNITY = {
     headline: 'Propuesta Estratégica Aura OS',
-    subheadline: 'Transformación digital para Grupo Norte Facility Peru S.A.C.',
+    subheadline: 'Transformación digital estratégica para potenciar el crecimiento.',
     totalCapex: 705,
     totalOpex: 150,
     investment: 705,
@@ -177,23 +177,23 @@ const formatCurrency = (val: number) =>
     `S/ ${val.toLocaleString('es-PE', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
 
 const statusConfig: Record<string, { label: string; bg: string; text: string; border: string }> = {
-    discovery: { label: 'En Discovery', bg: 'bg-[#F2C272]/15', text: 'text-[#B45309]', border: 'border-[#F2C272]/30' },
-    quoted: { label: 'Propuesta Enviada', bg: 'bg-[#A7C7A3]/15', text: 'text-[#166534]', border: 'border-[#A7C7A3]/30' },
-    won: { label: 'Aprobado', bg: 'bg-[#A7C7A3]/20', text: 'text-[#166534]', border: 'border-[#A7C7A3]/40' },
-    lost: { label: 'Cerrado', bg: 'bg-[#DF7B71]/15', text: 'text-[#991B1B]', border: 'border-[#DF7B71]/30' }
+    discovery: { label: 'En Discovery', bg: 'bg-primary/15', text: 'text-primary', border: 'border-primary/30' },
+    quoted: { label: 'Propuesta Enviada', bg: 'bg-emerald-500/15', text: 'text-emerald-500', border: 'border-emerald-500/30' },
+    won: { label: 'Aprobado', bg: 'bg-emerald-500/20', text: 'text-emerald-500', border: 'border-emerald-500/40' },
+    lost: { label: 'Cerrado', bg: 'bg-destructive/15', text: 'text-destructive', border: 'border-destructive/30' }
 }
 
 const segmentColors: Record<string, string> = {
-    'Premium': 'bg-violet-100 text-violet-700 border-violet-200',
-    'Medio-Alto': 'bg-amber-100 text-amber-700 border-amber-200',
-    'Medio': 'bg-amber-50 text-amber-600 border-amber-100',
-    'Low-cost': 'bg-emerald-100 text-emerald-700 border-emerald-200'
+    'Premium': 'bg-primary/10 text-primary border-primary/20',
+    'Medio-Alto': 'bg-orange-500/10 text-orange-500 border-orange-500/20',
+    'Medio': 'bg-amber-500/10 text-amber-500 border-amber-500/20',
+    'Low-cost': 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
 }
 
 const threatIcon = (level: string) => {
-    if (level === 'high') return <AlertTriangle size={14} className="text-[#DF7B71]" />
-    if (level === 'medium') return <AlertCircle size={14} className="text-[#F2C272]" />
-    return <CheckCircle2 size={14} className="text-[#A7C7A3]" />
+    if (level === 'high') return <AlertTriangle size={14} className="text-destructive" />
+    if (level === 'medium') return <AlertCircle size={14} className="text-orange-500" />
+    return <CheckCircle2 size={14} className="text-emerald-500" />
 }
 
 const scoreColor = (score: number) => {
@@ -218,24 +218,24 @@ function DashboardHeader({ opp, client, status }: { opp: any; client: any; statu
     const ruc = client?.ruc || FALLBACK_CLIENT.ruc
 
     return (
-        <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/60">
+        <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-md border-b border-border/50">
             <div className="flex items-center justify-between px-5 py-3 gap-4">
                 {/* Logo */}
                 <div className="flex items-center gap-2.5 shrink-0">
-                    <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center">
-                        <span className="text-white font-black text-[10px]">FX</span>
+                    <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                        <span className="text-primary-foreground font-black text-[10px]">FX</span>
                     </div>
-                    <span className="hidden sm:block font-extrabold tracking-tighter text-xs uppercase text-slate-900">Aura OS</span>
+                    <span className="hidden sm:block font-extrabold tracking-tighter text-xs uppercase text-foreground">Aura OS</span>
                 </div>
 
                 {/* Centro: Info Cliente */}
                 <div className="flex-1 min-w-0 flex flex-col items-center">
-                    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
                         <span>Propuesta Estratégica</span>
                     </div>
                     <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-sm font-bold text-slate-900 truncate max-w-[200px] sm:max-w-sm">{razonSocial}</span>
-                        <span className="hidden sm:inline text-[10px] text-slate-400 font-bold">RUC {ruc}</span>
+                        <span className="text-sm font-bold text-foreground truncate max-w-[200px] sm:max-w-sm">{razonSocial}</span>
+                        <span className="hidden sm:inline text-[10px] text-muted-foreground font-bold">RUC {ruc}</span>
                     </div>
                 </div>
 
@@ -245,13 +245,13 @@ function DashboardHeader({ opp, client, status }: { opp: any; client: any; statu
                         {cfg.label}
                     </span>
                     <div className="hidden lg:flex items-center gap-1.5">
-                        <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 text-[10px] font-black uppercase tracking-wider text-slate-600 hover:bg-slate-50 transition-colors">
+                        <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-[10px] font-black uppercase tracking-wider text-muted-foreground hover:bg-secondary transition-colors">
                             <Download size={12} /> PDF
                         </button>
-                        <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#A7C7A3] text-[#1a3a16] text-[10px] font-black uppercase tracking-wider hover:bg-[#96b892] transition-colors">
+                        <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary/20 text-primary border border-primary/30 text-[10px] font-black uppercase tracking-wider hover:bg-primary/30 transition-colors">
                             <CheckCircle2 size={12} /> Aprobar
                         </button>
-                        <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-900 text-white text-[10px] font-black uppercase tracking-wider hover:bg-slate-800 transition-colors">
+                        <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-foreground text-background text-[10px] font-black uppercase tracking-wider hover:bg-foreground/80 transition-colors">
                             <MessageSquare size={12} /> Comentar
                         </button>
                     </div>
@@ -272,7 +272,7 @@ function TabNavigation({ activeTab, onTabChange }: { activeTab: TabId; onTabChan
     ]
 
     return (
-        <nav className="px-4 py-3 bg-white border-b border-slate-100">
+        <nav className="px-4 py-3 bg-card border-b border-border/50">
             <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
                 {tabs.map(tab => {
                     const Icon = tab.icon
@@ -283,8 +283,8 @@ function TabNavigation({ activeTab, onTabChange }: { activeTab: TabId; onTabChan
                             onClick={() => onTabChange(tab.id)}
                             className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider whitespace-nowrap transition-all shrink-0
                                 ${isActive
-                                    ? 'bg-[#FFE8BE] text-[#473E28] shadow-sm'
-                                    : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
+                                    ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
+                                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
                                 }`}
                         >
                             <Icon size={13} />
@@ -319,9 +319,10 @@ function TabResumenEjecutivo({ opp, client, phases: phasesProp }: { opp: any; cl
     const insights = client?.client_insights_jsonb
     const keyFinding = insights?.initial_observations?.key_finding || FALLBACK_INSIGHTS.key_finding
 
+    const blockCount = opp.draft_jsonb?.blocks?.length || 0
     const kpis = [
-        { label: 'Inversión Propuesta', value: formatCurrency(investment), icon: CreditCard, color: 'text-slate-900' },
-        { label: 'Tipo de Proyecto', value: `${dimensionLabel} (5 bloques)`, icon: Layers, color: 'text-slate-900' }
+        { label: 'Inversión Propuesta', value: formatCurrency(investment), icon: CreditCard, color: 'text-foreground' },
+        { label: 'Tipo de Proyecto', value: `${dimensionLabel} (${blockCount} bloques)`, icon: Layers, color: 'text-foreground' }
     ]
 
     return (
@@ -331,12 +332,12 @@ function TabResumenEjecutivo({ opp, client, phases: phasesProp }: { opp: any; cl
                 {kpis.map((kpi, i) => {
                     const Icon = kpi.icon
                     return (
-                        <div key={i} className="bg-white rounded-2xl border border-slate-100 p-4 hover:border-[#FFE8BE]/60 hover:shadow-sm transition-all">
+                        <div key={i} className="bg-card rounded-2xl border border-border/50 p-4 hover:border-primary/30 hover:shadow-sm transition-all group">
                             <div className="flex items-center gap-2 mb-2">
-                                <div className="p-1.5 rounded-lg bg-[#FFE8BE]/30">
-                                    <Icon size={14} className="text-[#473E28]" />
+                                <div className="p-1.5 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                                    <Icon size={14} className="text-primary" />
                                 </div>
-                                <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">{kpi.label}</span>
+                                <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">{kpi.label}</span>
                             </div>
                             <p className={`text-lg font-black ${kpi.color} tracking-tight`}>{kpi.value}</p>
                         </div>
@@ -347,58 +348,51 @@ function TabResumenEjecutivo({ opp, client, phases: phasesProp }: { opp: any; cl
             {/* Grid 60/40 */}
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
                 {/* Propuesta de Valor — 60% */}
-                <div className="lg:col-span-3 bg-white rounded-2xl border border-slate-100 p-5">
+                <div className="lg:col-span-3 bg-card rounded-2xl border border-border/50 p-5">
                     <div className="flex items-center gap-2 mb-4">
-                        <Zap size={16} className="text-[#D4A843]" />
-                        <h3 className="text-xs font-black uppercase tracking-tighter text-slate-900">Propuesta de Valor</h3>
+                        <Zap size={16} className="text-primary" />
+                        <h3 className="text-xs font-black uppercase tracking-tighter text-foreground">Propuesta de Valor</h3>
                     </div>
-                    <p className="text-sm font-bold text-slate-800 leading-relaxed mb-4">{valueProp}</p>
+                    <p className="text-sm font-bold text-foreground/90 leading-relaxed mb-4">{valueProp}</p>
                     <div className="flex flex-wrap gap-2 mb-4">
-                        <span className="px-2.5 py-1 rounded-full bg-slate-100 text-[10px] font-black uppercase tracking-wider text-slate-500">{industry}</span>
-                        <span className="px-2.5 py-1 rounded-full bg-[#FFE8BE]/40 text-[10px] font-black uppercase tracking-wider text-[#473E28]">{b2b}</span>
+                        <span className="px-2.5 py-1 rounded-full bg-secondary text-[10px] font-black uppercase tracking-wider text-muted-foreground">{industry}</span>
+                        <span className="px-2.5 py-1 rounded-full bg-primary/20 text-[10px] font-black uppercase tracking-wider text-primary">{b2b}</span>
                     </div>
-                    <div className="h-px bg-slate-100 my-4" />
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Target de Segmentos</p>
-                    <div className="flex flex-wrap gap-1.5">
-                        {['#Retail', '#Salud', '#Corporativo', '#Industrial', '#Financiero'].map(tag => (
-                            <span key={tag} className="px-2 py-0.5 rounded-md bg-slate-50 text-[10px] font-bold text-slate-500 border border-slate-100">{tag}</span>
-                        ))}
-                    </div>
-                    <p className="mt-3 text-xs text-slate-500 leading-relaxed">{targetMarket}</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{targetMarket}</p>
                 </div>
 
                 {/* Hallazgo Principal — 40% */}
-                <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 p-5 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-[#DF7B71]/5 rounded-full blur-2xl" />
+                <div className="lg:col-span-2 bg-card rounded-2xl border border-border/50 p-5 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-destructive/5 rounded-full blur-2xl" />
                     <div className="flex items-center gap-2 mb-3">
-                        <div className="p-1.5 rounded-lg bg-[#DF7B71]/10">
-                            <AlertTriangle size={16} className="text-[#DC2626]" />
+                        <div className="p-1.5 rounded-lg bg-destructive/10">
+                            <AlertTriangle size={16} className="text-destructive" />
                         </div>
-                        <h3 className="text-xs font-black uppercase tracking-tighter text-slate-900">Hallazgo Principal</h3>
+                        <h3 className="text-xs font-black uppercase tracking-tighter text-foreground">Hallazgo Principal</h3>
                     </div>
-                    <p className="text-xs font-medium text-slate-600 leading-relaxed italic">&ldquo;{keyFinding}&rdquo;</p>
-                    <div className="mt-4 flex items-center gap-1.5 text-[10px] font-bold text-[#D4A843] hover:underline cursor-pointer">
+                    <p className="text-xs font-medium text-muted-foreground leading-relaxed italic">&ldquo;{keyFinding}&rdquo;</p>
+                    <div className="mt-4 flex items-center gap-1.5 text-[10px] font-bold text-primary hover:underline cursor-pointer">
                         <ChevronRight size={12} /> Ver diagnóstico completo
                     </div>
                 </div>
             </div>
 
             {/* Barra de Progreso */}
-            <div className="bg-white rounded-2xl border border-slate-100 p-5">
+            <div className="bg-card rounded-2xl border border-border/50 p-5">
                 <div className="flex items-center gap-2 mb-4">
-                    <Rocket size={16} className="text-[#D4A843]" />
-                    <h3 className="text-xs font-black uppercase tracking-tighter text-slate-900">Progreso del Proyecto</h3>
+                    <Rocket size={16} className="text-primary" />
+                    <h3 className="text-xs font-black uppercase tracking-tighter text-foreground">Progreso del Proyecto</h3>
                 </div>
                 <div className="flex items-center gap-2">
                     {phases.map((phase, i) => (
                         <div key={phase.id || phase.phase_key || i} className="flex-1 flex flex-col items-center gap-2">
                             <div className={`w-full h-2 rounded-full transition-all ${
-                                phase.status === 'completed' || phase.status === 'approved' ? 'bg-[#A7C7A3]' :
-                                phase.status === 'in_progress' || phase.status === 'in_review' ? 'bg-[#F2C272]' : 'bg-slate-100'
+                                phase.status === 'completed' || phase.status === 'approved' ? 'bg-emerald-500' :
+                                phase.status === 'in_progress' || phase.status === 'in_review' ? 'bg-primary' : 'bg-secondary'
                             }`} />
                             <span className={`text-[9px] font-black uppercase tracking-wider text-center ${
-                                phase.status === 'in_progress' || phase.status === 'in_review' ? 'text-[#B45309]' :
-                                phase.status === 'completed' || phase.status === 'approved' ? 'text-[#166534]' : 'text-slate-300'
+                                phase.status === 'in_progress' || phase.status === 'in_review' ? 'text-primary' :
+                                phase.status === 'completed' || phase.status === 'approved' ? 'text-emerald-500' : 'text-muted-foreground/40'
                             }`}>
                                 {phase.phase_name || phase.label}
                             </span>
@@ -433,58 +427,49 @@ function TabInteligenciaMercado({ client }: { client: any }) {
     return (
         <div className="space-y-5 animate-in fade-in duration-300">
             {/* Diagnóstico Técnico */}
-            <div className="bg-white rounded-2xl border border-[#DF7B71]/20 p-5 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-[#DF7B71]/5 rounded-full blur-3xl" />
+            <div className="bg-card rounded-2xl border border-destructive/20 p-5 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-destructive/5 rounded-full blur-3xl" />
                 <div className="flex items-start gap-3 relative z-10">
-                    <div className="p-2 rounded-xl bg-[#DF7B71]/10 shrink-0">
-                        <AlertTriangle size={18} className="text-[#DC2626]" />
+                    <div className="p-2 rounded-xl bg-destructive/10 shrink-0">
+                        <AlertTriangle size={18} className="text-destructive" />
                     </div>
                     <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
-                            <h3 className="text-xs font-black uppercase tracking-tighter text-slate-900">Diagnóstico Técnico</h3>
-                            <span className="px-2 py-0.5 rounded-full bg-[#DF7B71]/10 text-[10px] font-black uppercase tracking-wider text-[#DC2626] border border-[#DF7B71]/20">
+                            <h3 className="text-xs font-black uppercase tracking-tighter text-foreground">Diagnóstico Técnico</h3>
+                            <span className="px-2 py-0.5 rounded-full bg-destructive/10 text-[10px] font-black uppercase tracking-wider text-destructive border border-destructive/20">
                                 Crítico — Riesgo de irrelevancia digital
                             </span>
                         </div>
-                        <p className="text-xs font-medium text-slate-600 leading-relaxed">{diagnosis}</p>
+                        <p className="text-xs font-medium text-muted-foreground leading-relaxed">{diagnosis}</p>
                     </div>
                 </div>
             </div>
 
             {/* Competidores */}
-            <div className="bg-white rounded-2xl border border-slate-100 p-5">
+            <div className="bg-card rounded-2xl border border-border/50 p-5">
                 <div className="flex items-center gap-2 mb-4">
-                    <Users size={16} className="text-[#D4A843]" />
-                    <h3 className="text-xs font-black uppercase tracking-tighter text-slate-900">Mapa de Competidores</h3>
+                    <Users size={16} className="text-primary" />
+                    <h3 className="text-xs font-black uppercase tracking-tighter text-foreground">Mapa de Competidores</h3>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full min-w-[500px]">
                         <thead>
-                            <tr className="border-b border-slate-100">
-                                <th className="text-left text-[9px] font-black uppercase tracking-widest text-slate-400 py-2 pr-4">Competidor</th>
-                                <th className="text-left text-[9px] font-black uppercase tracking-widest text-slate-400 py-2 pr-4">Segmento</th>
-                                <th className="text-left text-[9px] font-black uppercase tracking-widest text-slate-400 py-2 pr-4">Fortaleza Clave</th>
-                                <th className="text-left text-[9px] font-black uppercase tracking-widest text-slate-400 py-2">Amenaza</th>
+                            <tr className="border-b border-border/50">
+                                <th className="text-left text-[9px] font-black uppercase tracking-widest text-muted-foreground py-2 pr-4">Competidor</th>
+                                <th className="text-left text-[9px] font-black uppercase tracking-widest text-muted-foreground py-2 pr-4">Segmento</th>
+                                <th className="text-left text-[9px] font-black uppercase tracking-widest text-muted-foreground py-2 pr-4">Fortaleza Clave</th>
                             </tr>
                         </thead>
                         <tbody>
                             {competitors.map((c: any, i: number) => (
-                                <tr key={i} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                                    <td className="py-3 pr-4 text-xs font-bold text-slate-800">{c.name}</td>
+                                <tr key={i} className="border-b border-border/20 hover:bg-secondary/50 transition-colors">
+                                    <td className="py-3 pr-4 text-xs font-bold text-foreground/90">{c.name}</td>
                                     <td className="py-3 pr-4">
                                         <span className={`inline-block px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border ${segmentColors[c.segment] || segmentColors.Medio}`}>
                                             {c.segment}
                                         </span>
                                     </td>
-                                    <td className="py-3 pr-4 text-[11px] text-slate-500 font-medium">{c.strength}</td>
-                                    <td className="py-3">
-                                        <div className="flex items-center gap-1.5">
-                                            {threatIcon(c.threat || 'low')}
-                                            <span className="text-[10px] font-bold text-slate-400 uppercase">
-                                                {c.threat === 'high' ? 'Alta' : c.threat === 'medium' ? 'Media' : 'Baja'}
-                                            </span>
-                                        </div>
-                                    </td>
+                                    <td className="py-3 pr-4 text-[11px] text-muted-foreground font-medium">{c.strength}</td>
                                 </tr>
                             ))}
                         </tbody>
@@ -495,21 +480,21 @@ function TabInteligenciaMercado({ client }: { client: any }) {
             {/* Tendencias */}
             <div>
                 <div className="flex items-center gap-2 mb-3 px-1">
-                    <TrendingUp size={16} className="text-[#D4A843]" />
-                    <h3 className="text-xs font-black uppercase tracking-tighter text-slate-900">Tendencias del Mercado</h3>
+                    <TrendingUp size={16} className="text-primary" />
+                    <h3 className="text-xs font-black uppercase tracking-tighter text-foreground">Tendencias del Mercado</h3>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     {trends.map((t: any, i: number) => {
                         const IconComp = trendIcons[t.icon] || Globe
                         return (
-                            <div key={i} className="bg-white rounded-2xl border border-slate-100 p-4 hover:border-[#FFE8BE]/50 hover:shadow-sm transition-all">
+                            <div key={i} className="bg-card rounded-2xl border border-border/50 p-4 hover:border-primary/50 hover:shadow-sm transition-all">
                                 <div className="flex items-center gap-2 mb-2">
-                                    <div className="p-1.5 rounded-lg bg-[#FFE8BE]/30">
-                                        <IconComp size={13} className="text-[#473E28]" />
+                                    <div className="p-1.5 rounded-lg bg-primary/10">
+                                        <IconComp size={13} className="text-primary" />
                                     </div>
-                                    <h4 className="text-[11px] font-black uppercase tracking-tight text-slate-800">{t.title}</h4>
+                                    <h4 className="text-[11px] font-black uppercase tracking-tight text-foreground/90">{t.title}</h4>
                                 </div>
-                                <p className="text-[11px] text-slate-500 font-medium leading-relaxed">{t.impact}</p>
+                                <p className="text-[11px] text-muted-foreground font-medium leading-relaxed">{t.impact}</p>
                             </div>
                         )
                     })}
@@ -517,20 +502,20 @@ function TabInteligenciaMercado({ client }: { client: any }) {
             </div>
 
             {/* Oportunidades */}
-            <div className="bg-white rounded-2xl border border-slate-100 p-5">
+            <div className="bg-card rounded-2xl border border-border/50 p-5">
                 <div className="flex items-center gap-2 mb-4">
-                    <Lightbulb size={16} className="text-[#D4A843]" />
-                    <h3 className="text-xs font-black uppercase tracking-tighter text-slate-900">Oportunidades Inmediatas</h3>
+                    <Lightbulb size={16} className="text-primary" />
+                    <h3 className="text-xs font-black uppercase tracking-tighter text-foreground">Oportunidades Inmediatas</h3>
                 </div>
                 <div className="space-y-3">
                     {opportunities.map((o: any, i: number) => (
-                        <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-slate-50/50 border border-slate-100">
-                            <div className="mt-0.5 shrink-0 w-5 h-5 rounded-md border-2 border-[#A7C7A3] bg-[#A7C7A3]/10 flex items-center justify-center">
-                                <Check size={12} className="text-[#166534]" />
+                        <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-secondary/30 border border-border/30">
+                            <div className="mt-0.5 shrink-0 w-5 h-5 rounded-md border-2 border-emerald-500/50 bg-emerald-500/10 flex items-center justify-center">
+                                <Check size={12} className="text-emerald-500" />
                             </div>
                             <div>
-                                <p className="text-xs font-bold text-slate-800">{o.action}</p>
-                                <p className="text-[11px] text-slate-500 font-medium leading-relaxed mt-0.5">{o.detail}</p>
+                                <p className="text-xs font-bold text-foreground/90">{o.action}</p>
+                                <p className="text-[11px] text-muted-foreground font-medium leading-relaxed mt-0.5">{o.detail}</p>
                             </div>
                         </div>
                     ))}
@@ -587,44 +572,41 @@ function TabEstrategiaDigital({ opp, client }: { opp: any; client: any }) {
         <div className="space-y-5 animate-in fade-in duration-300">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {/* Estado Actual */}
-                <div className="bg-white rounded-2xl border border-slate-100 p-5">
+                <div className="bg-card rounded-2xl border border-border/50 p-5">
                     <div className="flex items-center gap-2 mb-4">
-                        <Search size={16} className="text-[#D4A843]" />
-                        <h3 className="text-xs font-black uppercase tracking-tighter text-slate-900">Estado Digital Actual</h3>
+                        <Search size={16} className="text-primary" />
+                        <h3 className="text-xs font-black uppercase tracking-tighter text-foreground">Estado Digital Actual</h3>
                     </div>
                     <div className="space-y-4">
                         {scores.map((s, i) => (
                             <div key={i}>
                                 <div className="flex items-center justify-between mb-1.5">
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{s.label}</span>
-                                    <span className="text-[10px] font-black text-slate-400">{s.score}/10 — {scoreLabel(s.score)}</span>
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{s.label}</span>
+                                    <span className="text-[10px] font-black text-muted-foreground/60">{s.score}/10 — {scoreLabel(s.score)}</span>
                                 </div>
-                                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                                <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
                                     <div className={`h-full rounded-full ${scoreColor(s.score)}`} style={{ width: `${s.score * 10}%` }} />
                                 </div>
-                                <p className="mt-1 text-[10px] text-slate-400 font-medium">{s.obs}</p>
+                                <p className="mt-1 text-[10px] text-muted-foreground/60 font-medium">{s.obs}</p>
                             </div>
                         ))}
                     </div>
                 </div>
 
                 {/* Dirección Propuesta */}
-                <div className="bg-white rounded-2xl border border-slate-100 p-5">
+                <div className="bg-card rounded-2xl border border-border/50 p-5">
                     <div className="flex items-center gap-2 mb-4">
-                        <Target size={16} className="text-[#D4A843]" />
-                        <h3 className="text-xs font-black uppercase tracking-tighter text-slate-900">Dirección Propuesta</h3>
+                        <Target size={16} className="text-primary" />
+                        <h3 className="text-xs font-black uppercase tracking-tighter text-foreground">Dirección Propuesta</h3>
                     </div>
                     <div className="space-y-3">
                         {[
-                            { label: 'Headline del Portal', value: headline },
-                            { label: 'Subheadline', value: subheadline },
-                            { label: 'Mensaje Clave', value: keyMessage },
                             { label: 'Usuario Objetivo', value: targetUser },
                             { label: 'Propuesta de Valor Técnica', value: techValueProp }
                         ].map((field, i) => (
                             <div key={i}>
-                                <label className="block text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">{field.label}</label>
-                                <div className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2.5 text-xs font-bold text-slate-700">
+                                <label className="block text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-1">{field.label}</label>
+                                <div className="w-full rounded-xl border border-border/50 bg-background/50 px-3 py-2.5 text-xs font-bold text-foreground/90">
                                     {field.value}
                                 </div>
                             </div>
@@ -642,16 +624,16 @@ function TabEstrategiaDigital({ opp, client }: { opp: any; client: any }) {
                     const Icon = item.icon
                     const isPending = item.value.toLowerCase().includes('pendiente') || item.value.toLowerCase().includes('definir')
                     return (
-                        <div key={i} className="bg-white rounded-2xl border border-slate-100 p-4">
+                        <div key={i} className="bg-card rounded-2xl border border-border/50 p-4">
                             <div className="flex items-center gap-2 mb-2">
-                                <Icon size={14} className="text-slate-400" />
-                                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500">{item.title}</h4>
+                                <Icon size={14} className="text-muted-foreground/60" />
+                                <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{item.title}</h4>
                             </div>
-                            <p className={`text-xs font-bold leading-relaxed ${isPending ? 'text-slate-400' : 'text-slate-800'}`}>
+                            <p className={`text-xs font-bold leading-relaxed ${isPending ? 'text-muted-foreground/40' : 'text-foreground/90'}`}>
                                 {item.value}
                             </p>
                             {isPending && (
-                                <span className="inline-block mt-2 px-2 py-0.5 rounded-md bg-slate-100 text-[9px] font-black uppercase tracking-wider text-slate-400">
+                                <span className="inline-block mt-2 px-2 py-0.5 rounded-md bg-secondary text-[9px] font-black uppercase tracking-wider text-muted-foreground/40">
                                     Pendiente de definir
                                 </span>
                             )}
@@ -698,29 +680,29 @@ function TabPropuestaTecnica({ opp, catalog, phases: realPhases = [] }: { opp: a
     return (
         <div className="space-y-5 animate-in fade-in duration-300">
             {/* Alcance del Proyecto */}
-            <div className="bg-white rounded-2xl border border-slate-100 p-5">
+            <div className="bg-card rounded-2xl border border-border/50 p-5">
                 <div className="flex items-center gap-2 mb-4">
-                    <Layers size={16} className="text-[#D4A843]" />
-                    <h3 className="text-xs font-black uppercase tracking-tighter text-slate-900">Alcance del Proyecto</h3>
+                    <Layers size={16} className="text-primary" />
+                    <h3 className="text-xs font-black uppercase tracking-tighter text-foreground">Alcance del Proyecto</h3>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     {blocks.map((b: any, i: number) => (
                         <div key={i} className={`rounded-xl border p-4 transition-all hover:shadow-sm ${
-                            b.isComplex ? 'border-[#FFE8BE] bg-[#FFE8BE]/5' : 'border-slate-100 bg-slate-50/30'
+                            b.isComplex ? 'border-primary/40 bg-primary/5' : 'border-border/50 bg-secondary/30'
                         }`}>
                             <div className="flex items-center justify-between mb-2">
-                                <span className="text-xs font-black text-slate-800">{b.name}</span>
+                                <span className="text-xs font-black text-foreground/90">{b.name}</span>
                                 {b.isComplex && (
-                                    <span className="px-1.5 py-0.5 rounded-md bg-[#FFE8BE]/60 text-[9px] font-black uppercase tracking-wider text-[#473E28]">
+                                    <span className="px-1.5 py-0.5 rounded-md bg-primary/20 text-[9px] font-black uppercase tracking-wider text-primary">
                                         +40%
                                     </span>
                                 )}
                             </div>
                             <div className="flex items-center justify-between">
-                                <span className={`text-[10px] font-bold uppercase tracking-wider ${b.isComplex ? 'text-[#B45309]' : 'text-slate-400'}`}>
+                                <span className={`text-[10px] font-bold uppercase tracking-wider ${b.isComplex ? 'text-primary' : 'text-muted-foreground/40'}`}>
                                     {b.complexity}
                                 </span>
-                                <span className="text-sm font-black text-slate-900">{formatCurrency(b.price)}</span>
+                                <span className="text-sm font-black text-foreground">{formatCurrency(b.price)}</span>
                             </div>
                         </div>
                     ))}
@@ -729,32 +711,32 @@ function TabPropuestaTecnica({ opp, catalog, phases: realPhases = [] }: { opp: a
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {/* Módulos Adicionales */}
-                <div className="bg-white rounded-2xl border border-slate-100 p-5">
+                <div className="bg-card rounded-2xl border border-border/50 p-5">
                     <div className="flex items-center gap-2 mb-4">
-                        <CheckCircle2 size={16} className="text-[#D4A843]" />
-                        <h3 className="text-xs font-black uppercase tracking-tighter text-slate-900">Módulos Activos</h3>
+                        <CheckCircle2 size={16} className="text-primary" />
+                        <h3 className="text-xs font-black uppercase tracking-tighter text-foreground">Módulos Activos</h3>
                     </div>
                     <div className="space-y-2">
                         {modules.map((m: any, i: number) => (
-                            <div key={i} className="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
-                                <span className="text-xs font-bold text-slate-700">{m.name}</span>
-                                {m.active && <CheckCircle2 size={14} className="text-[#A7C7A3]" />}
+                            <div key={i} className="flex items-center justify-between py-2 border-b border-border/20 last:border-0">
+                                <span className="text-xs font-bold text-foreground/80">{m.name}</span>
+                                {m.active && <CheckCircle2 size={14} className="text-emerald-500" />}
                             </div>
                         ))}
                     </div>
                 </div>
 
                 {/* Lo que NO incluye */}
-                <div className="bg-slate-50 rounded-2xl border border-slate-100 p-5">
+                <div className="bg-secondary rounded-2xl border border-border/50 p-5">
                     <div className="flex items-center gap-2 mb-4">
-                        <XCircle size={16} className="text-slate-400" />
-                        <h3 className="text-xs font-black uppercase tracking-tighter text-slate-500">Lo que NO incluye</h3>
+                        <XCircle size={16} className="text-muted-foreground/60" />
+                        <h3 className="text-xs font-black uppercase tracking-tighter text-muted-foreground">Lo que NO incluye</h3>
                     </div>
                     <div className="space-y-2">
                         {exclusions.map((ex: string, i: number) => (
                             <div key={i} className="flex items-start gap-2">
-                                <div className="mt-1 w-1 h-1 rounded-full bg-slate-300 shrink-0" />
-                                <p className="text-[11px] text-slate-500 font-medium leading-relaxed">{ex}</p>
+                                <div className="mt-1 w-1 h-1 rounded-full bg-border shrink-0" />
+                                <p className="text-[11px] text-muted-foreground font-medium leading-relaxed">{ex}</p>
                             </div>
                         ))}
                     </div>
@@ -762,10 +744,10 @@ function TabPropuestaTecnica({ opp, catalog, phases: realPhases = [] }: { opp: a
             </div>
 
             {/* Timeline Vertical de Fases */}
-            <div className="bg-white rounded-2xl border border-slate-100 p-5">
+            <div className="bg-card rounded-2xl border border-border/50 p-5">
                 <div className="flex items-center gap-2 mb-5">
-                    <Clock size={16} className="text-[#D4A843]" />
-                    <h3 className="text-xs font-black uppercase tracking-tighter text-slate-900">Fases del Proyecto</h3>
+                    <Clock size={16} className="text-primary" />
+                    <h3 className="text-xs font-black uppercase tracking-tighter text-foreground">Fases del Proyecto</h3>
                 </div>
                 <div className="space-y-0">
                     {(() => {
@@ -792,32 +774,32 @@ function TabPropuestaTecnica({ opp, catalog, phases: realPhases = [] }: { opp: a
                                 <div key={i} className="flex gap-4">
                                     <div className="flex flex-col items-center">
                                         <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
-                                            isDone ? 'bg-[#A7C7A3] text-white' :
-                                            isActive ? 'bg-[#FFE8BE] text-[#473E28]' :
-                                            'bg-slate-100 text-slate-300'
+                                            isDone ? 'bg-emerald-500 text-white' :
+                                            isActive ? 'bg-primary text-primary-foreground' :
+                                            'bg-secondary text-muted-foreground/40'
                                         }`}>
                                             {isDone ? <Check size={12} /> : isLocked ? <Lock size={12} /> : <Unlock size={12} />}
                                         </div>
                                         {i < arr.length - 1 && (
-                                            <div className={`w-px flex-1 ${isDone ? 'bg-[#A7C7A3]/50' : 'bg-slate-100'} my-1`} />
+                                            <div className={`w-px flex-1 ${isDone ? 'bg-emerald-500/50' : 'bg-border'} my-1`} />
                                         )}
                                     </div>
                                     <div className={`pb-5 flex-1 ${isLocked ? 'opacity-50' : ''}`}>
                                         <div className="flex items-center justify-between">
-                                            <h4 className="text-xs font-black text-slate-800">{phase.name}</h4>
-                                            <span className="text-[10px] font-bold text-slate-400">{phase.date}</span>
+                                            <h4 className="text-xs font-black text-foreground/90">{phase.name}</h4>
+                                            <span className="text-[10px] font-bold text-muted-foreground/60">{phase.date}</span>
                                         </div>
                                         <div className="flex items-center gap-3 mt-1">
-                                            <span className="text-[10px] text-slate-400 font-medium">{phase.revisions} revisión{phase.revisions > 1 ? 'es' : ''} incluida</span>
+                                            <span className="text-[10px] text-muted-foreground/60 font-medium">{phase.revisions} revisión{phase.revisions > 1 ? 'es' : ''} incluida</span>
                                             {phase.requiresApproval && (
-                                                <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#F2C272]/15 text-[#B45309]">
+                                                <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary/15 text-primary">
                                                     Aprobación cliente
                                                 </span>
                                             )}
                                             <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded ${
-                                                isDone ? 'bg-[#A7C7A3]/20 text-[#166534]' :
-                                                isActive ? 'bg-[#F2C272]/20 text-[#B45309]' :
-                                                'bg-slate-100 text-slate-400'
+                                                isDone ? 'bg-emerald-500/20 text-emerald-500' :
+                                                isActive ? 'bg-primary/20 text-primary' :
+                                                'bg-secondary text-muted-foreground/40'
                                             }`}>
                                                 {isDone ? 'Completado' : isActive ? 'En Curso' : 'Pendiente'}
                                             </span>
@@ -835,14 +817,29 @@ function TabPropuestaTecnica({ opp, catalog, phases: realPhases = [] }: { opp: a
 
 /* ─────────── TAB 5: INVERSIÓN ─────────── */
 
-function TabInversion({ opp }: { opp: any }) {
+function TabInversion({ opp, catalog }: { opp: any; catalog: any[] }) {
     // DATA_API: opp.draft_jsonb totalCapex (desarrollo), totalOpex (suscripción), discount_applied
     const draft = opp.draft_jsonb
-    const capex = draft?.totalCapex || FALLBACK_OPPORTUNITY.totalCapex
-    const opex = draft?.totalOpex || (draft ? 0 : FALLBACK_OPPORTUNITY.totalOpex)
+    const model = draft?.infrastructureModel || 'internal'
+    const totalCapex = draft?.totalCapex || FALLBACK_OPPORTUNITY.totalCapex
+    const infraCapex = draft?.totalInfraCapex || 0
+    const softwareCapex = totalCapex - infraCapex
+
+    const opex = model === 'internal' ? (draft?.totalOpex || 0) : 0
+    const domainItem = catalog?.find(item => 
+        item.category === 'domain' || 
+        item.category === 'hosting_external' || 
+        item.name?.toLowerCase().includes('dominio')
+    )
+    const domainPrice = domainItem?.base_price_pen || 40
+
+    const displayInfraCapex = infraCapex > 0 ? infraCapex : (model === 'external' ? domainPrice : 0)
+    const displayTotalCapex = totalCapex + (infraCapex === 0 && model === 'external' ? domainPrice : 0)
+
+
     const discountPct = opp.discount_applied || 0
-    const discountAmount = Math.round(capex * discountPct / 100)
-    const subtotal = capex - discountAmount
+    const discountAmount = Math.round(displayTotalCapex * discountPct / 100)
+    const subtotal = displayTotalCapex - discountAmount
     const igv = Math.round(subtotal * 0.18)
     const finalTotal = subtotal + igv
 
@@ -850,112 +847,223 @@ function TabInversion({ opp }: { opp: any }) {
     const roi = fin.roi_estimate || FALLBACK_OPPORTUNITY.roi_estimate
     const revenue = fin.revenue_potential || FALLBACK_OPPORTUNITY.revenue_potential
     const terms = fin.payment_terms || FALLBACK_OPPORTUNITY.payment_terms
-    const notes = opp.meeting_notes || FALLBACK_OPPORTUNITY.meeting_notes
 
     return (
-        <div className="space-y-5 animate-in fade-in duration-300">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {/* Desglose Factura */}
-                <div className="bg-white rounded-2xl border border-slate-100 p-5">
-                    <div className="flex items-center gap-2 mb-4">
-                        <FileText size={16} className="text-[#D4A843]" />
-                        <h3 className="text-xs font-black uppercase tracking-tighter text-slate-900">Desglose de Inversión</h3>
-                    </div>
-                    <div className="space-y-3">
-                        {/* Desarrollo — único pago con IGV */}
-                        <div className="flex justify-between items-center py-2 border-b border-slate-50">
-                            <div>
-                                <span className="text-xs text-slate-600 font-medium block">Desarrollo — Bloques + Módulos</span>
-                                <span className="text-[10px] text-slate-400 font-medium">Pago único • Incluye IGV</span>
-                            </div>
-                            <span className="text-xs font-bold text-slate-800">{formatCurrency(capex)}</span>
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {/* Header Inversión */}
+            <div className="bg-card rounded-3xl border border-border/50 p-8 shadow-sm overflow-hidden relative">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32 opacity-50" />
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 relative z-10">
+                    <div>
+                        <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground mb-2">Presupuesto de Inversión</h3>
+                        <div className="flex items-baseline gap-2">
+                            <span className="text-5xl font-black text-foreground tracking-tighter">
+                                {formatCurrency(finalTotal)}
+                            </span>
+                            <span className="text-sm font-bold text-muted-foreground/60 uppercase tracking-widest">S/ IGV</span>
                         </div>
-
-                        {/* Suscripción — separada, sin IGV, opcional */}
-                        {opex > 0 && (
-                            <div className="flex justify-between items-center py-2 border-b border-slate-50">
-                                <div className="flex items-center gap-2">
-                                    <div className="px-1.5 py-0.5 rounded bg-[#F2C272]/15 text-[10px] font-black uppercase tracking-wider text-[#B45309]">Opcional</div>
-                                    <div>
-                                        <span className="text-xs text-slate-600 font-medium block">Suscripción / Mantenimiento</span>
-                                        <span className="text-[10px] text-slate-400 font-medium">Servicio externo recurrente • Sin IGV</span>
-                                    </div>
-                                </div>
-                                <span className="text-xs font-bold text-slate-800">{formatCurrency(opex)}<span className="text-[10px] font-medium text-slate-400">/mes</span></span>
-                            </div>
-                        )}
-
-                        <div className="h-px bg-slate-100 my-2" />
-
-                        <div className="flex justify-between items-center">
-                            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Subtotal Desarrollo</span>
-                            <span className="text-sm font-black text-slate-800">{formatCurrency(capex)}</span>
-                        </div>
-                        {discountPct > 0 && (
-                            <div className="flex justify-between items-center">
-                                <span className="text-xs font-bold text-[#A7C7A3] uppercase tracking-wider">Descuento ({discountPct}%)</span>
-                                <span className="text-sm font-black text-[#A7C7A3]">- {formatCurrency(discountAmount)}</span>
-                            </div>
-                        )}
-                        <div className="flex justify-between items-center">
-                            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">IGV 18%</span>
-                            <span className="text-sm font-black text-slate-800">{formatCurrency(igv)}</span>
-                        </div>
-                        <div className="h-px bg-slate-200 my-2" />
-                        <div className="flex justify-between items-center">
-                            <span className="text-xs font-black uppercase tracking-widest text-slate-900">Total Inicial</span>
-                            <span className="text-xl font-black text-slate-900">{formatCurrency(finalTotal)}</span>
-                        </div>
-                        {opex > 0 && (
-                            <div className="flex justify-between items-center pt-1">
-                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">+ Suscripción mensual</span>
-                                <span className="text-sm font-black text-[#B45309]">{formatCurrency(opex)}<span className="text-[10px] font-medium">/mes</span></span>
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                {/* Resumen Financiero */}
-                <div className="space-y-4">
-                    <div className="bg-white rounded-2xl border border-slate-100 p-5">
-                        <div className="flex items-center gap-2 mb-4">
-                            <BarChart3 size={16} className="text-[#D4A843]" />
-                            <h3 className="text-xs font-black uppercase tracking-tighter text-slate-900">Resumen Financiero</h3>
-                        </div>
-                        <div className="space-y-4">
-                            <div className="p-3 rounded-xl bg-slate-50">
-                                <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">ROI Estimado</span>
-                                <p className="text-sm font-black text-slate-800 mt-1">{roi}</p>
-                            </div>
-                            <div className="p-3 rounded-xl bg-slate-50">
-                                <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Potencial de Ingresos</span>
-                                <p className="text-sm font-black text-slate-800 mt-1">{revenue}</p>
-                            </div>
-                            <div className="p-3 rounded-xl bg-[#FFE8BE]/10 border border-[#FFE8BE]/30">
-                                <span className="text-[9px] font-black uppercase tracking-widest text-[#B45309]">Términos de Pago</span>
-                                <p className="text-sm font-black text-[#473E28] mt-1">{terms}</p>
-                            </div>
-                        </div>
+                        <p className="text-[10px] font-bold text-muted-foreground/60 mt-2 uppercase tracking-widest">Pago único por concepto de desarrollo e infraestructura inicial</p>
                     </div>
 
-                    {/* Notas de Reunión */}
-                    <div className="bg-white rounded-2xl border border-slate-100 p-5">
-                        <div className="flex items-center gap-2 mb-3">
-                            <MessageSquare size={16} className="text-slate-400" />
-                            <h3 className="text-xs font-black uppercase tracking-tighter text-slate-500">Notas de Reunión</h3>
+                    <div className="h-px md:h-12 w-full md:w-px bg-border/50" />
+
+                    <div>
+                        <div className="flex items-center gap-2 mb-1">
+                            <Clock size={14} className="text-primary" />
+                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Tiempo de Entrega</span>
                         </div>
-                        <blockquote className="border-l-2 border-[#FFE8BE] pl-3 py-1">
-                            <p className="text-xs text-slate-600 font-medium italic leading-relaxed">&ldquo;{notes}&rdquo;</p>
-                        </blockquote>
+                        <p className="text-xl font-black text-foreground italic">
+                            {opp.delivery_time_text || '25 - 35 días hábiles'}
+                        </p>
                     </div>
                 </div>
             </div>
 
-            {/* Botones de Acción */}
-            <div className="flex items-center justify-center pt-2">
-                <button className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-slate-900 text-white text-xs font-black uppercase tracking-widest hover:bg-slate-800 transition-all active:scale-[0.98] shadow-lg shadow-slate-900/10">
-                    <FileText size={16} className="text-primary" /> Ver Contrato de Servicios
-                </button>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Desglose Detallado */}
+                <div className="bg-card rounded-3xl border border-border/50 p-6 space-y-6">
+                    <div className="flex items-center gap-2">
+                        <div className="p-2 rounded-xl bg-foreground text-background">
+                            <Code2 size={16} />
+                        </div>
+                        <h4 className="text-xs font-black uppercase tracking-widest text-foreground">Conceptos de Inversión</h4>
+                    </div>
+
+                    <div className="space-y-4">
+                        {/* Desarrollo */}
+                        <div className="flex items-center justify-between py-2 border-b border-border/20">
+                            <div>
+                                <p className="text-[10px] font-black uppercase text-foreground/90">Desarrollo de Software</p>
+                                <p className="text-[9px] font-medium text-muted-foreground/60">Implementación de módulos Aura OS y lógica de negocio.</p>
+                            </div>
+                            <span className="text-sm font-black text-foreground">{formatCurrency(softwareCapex)}</span>
+                        </div>
+
+                        {/* Infraestructura / Dominio */}
+                        {displayInfraCapex > 0 && (
+                            <div className="flex items-center justify-between py-2 border-b border-border/20">
+                                <div>
+                                    <p className="text-[10px] font-black uppercase text-foreground/90">
+                                        {model === 'external' ? 'Gestión de Dominio Anual' : 'Infraestructura & Servidor'}
+                                    </p>
+                                    <p className="text-[9px] font-medium text-muted-foreground/60">
+                                        {model === 'external' ? 'Reserva y configuración de dominio corporativo.' : 'Aprovisionamiento de infraestructura optimizada.'}
+                                    </p>
+                                </div>
+                                <div className="text-right">
+                                    <span className="text-sm font-black text-foreground">{formatCurrency(displayInfraCapex)}</span>
+                                    <p className="text-[8px] font-bold text-muted-foreground/40 uppercase tracking-tighter">
+                                        {model === 'external' ? 'Renovación Anual' : 'Pago Inicial'}
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+
+
+                        <div className="space-y-2 pt-2">
+                            <div className="flex justify-between items-center text-[10px] font-black text-muted-foreground/60 uppercase tracking-wider">
+                                <span>Subtotal</span>
+                                <span>{formatCurrency(displayTotalCapex)}</span>
+                            </div>
+                            {discountPct > 0 && (
+                                <div className="flex justify-between items-center text-[10px] font-black text-emerald-500 uppercase tracking-wider bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-500/20">
+                                    <span>Descuento aplicado ({discountPct}%)</span>
+                                    <span>- {formatCurrency(discountAmount)}</span>
+                                </div>
+                            )}
+                            <div className="flex justify-between items-center text-[10px] font-black text-muted-foreground/60 uppercase tracking-wider">
+                                <span>IGV (18%)</span>
+                                <span>{formatCurrency(igv)}</span>
+                            </div>
+                        </div>
+
+                        <div className="h-px bg-border/20 my-2" />
+
+                        <div className="flex justify-between items-center">
+                            <div>
+                                <span className="text-[10px] font-black text-foreground uppercase tracking-widest block">Inversión Final</span>
+                                <span className="text-[8px] font-bold text-muted-foreground/40 uppercase">Incluye garantía técnica</span>
+                            </div>
+                            <span className="text-2xl font-black text-foreground tracking-tighter italic">{formatCurrency(finalTotal)}</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Modelo de Operación (OPEX) */}
+                <div className="flex flex-col gap-6">
+                    <div className={`rounded-3xl p-6 flex-1 flex flex-col transition-all border ${
+                        model === 'internal' 
+                            ? 'bg-foreground text-background border-foreground shadow-xl' 
+                            : 'bg-card border-border/50'
+                    }`}>
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-2">
+                                <div className={`p-2 rounded-xl ${model === 'internal' ? 'bg-primary/20 text-primary' : 'bg-secondary text-muted-foreground/60'}`}>
+                                    <Zap size={16} />
+                                </div>
+                                <h4 className={`text-xs font-black uppercase tracking-widest ${model === 'internal' ? 'text-background' : 'text-foreground'}`}>
+                                    Suscripción & Soporte
+                                </h4>
+                            </div>
+                            <div className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest border ${
+                                model === 'internal' 
+                                    ? 'bg-primary/20 text-primary border-primary/30' 
+                                    : 'bg-secondary text-muted-foreground/40 border-border/30'
+                            }`}>
+                                {model === 'internal' ? 'Plan Premium' : 'Gestión Externa'}
+                            </div>
+                        </div>
+
+                        {model === 'internal' ? (
+                            <div className="space-y-6 flex-1 flex flex-col justify-between">
+                                <div className="space-y-3">
+                                    {[
+                                        'Alojamiento en nuestro servidor optimizado',
+                                        'Gestión y pago de dominio incluido (anual)',
+                                        'Resolución inmediata de errores técnicos',
+                                        'Monitoreo proactivo de estabilidad',
+                                        'Actualizaciones de seguridad constantes'
+                                    ].map((b, i) => (
+                                        <div key={i} className="flex items-center gap-3 text-[11px] font-medium opacity-80">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                                            {b}
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="pt-6 border-t border-background/10 flex justify-between items-end">
+                                    <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Suscripción Mensual</span>
+                                    <div className="text-right">
+                                        <p className="text-3xl font-black text-primary tracking-tighter italic leading-none">{formatCurrency(opex)}</p>
+                                        <p className="text-[9px] font-bold opacity-60 uppercase mt-1">S/ IGV</p>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="space-y-6 flex-1 flex flex-col justify-between">
+                                <div className="space-y-3">
+                                    <p className="text-[11px] text-muted-foreground/60 font-medium leading-relaxed">
+                                        • El cliente asume la responsabilidad de su servidor.<br/>
+                                        • Los pagos de dominio y hosting son externos.<br/>
+                                        • Soporte técnico reactivo (tiempos de respuesta estándar).
+                                    </p>
+                                    <div className="p-3 rounded-xl bg-background/50 border border-border/30">
+                                        <p className="text-[10px] text-muted-foreground/40 font-medium leading-relaxed italic">
+                                            "Al alojarlo externamente, Fortex no interviene en caídas de servidor del proveedor tercero."
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="pt-6 border-t border-border/20 flex justify-between items-end">
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">Mantenimiento Dominio</span>
+                                    <div className="text-right">
+                                        <p className="text-3xl font-black text-primary tracking-tighter italic leading-none">{formatCurrency(domainPrice)}</p>
+                                        <p className="text-[9px] font-bold text-muted-foreground/40 uppercase mt-1">Pago Anual</p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {/* Resumen Financiero & Notas */}
+            <div className="space-y-6">
+                <div className="bg-card rounded-3xl border border-border/50 p-6 space-y-4">
+                    <div className="flex items-center gap-2">
+                        <div className="p-2 rounded-xl bg-primary/15 text-primary">
+                            <BarChart3 size={16} />
+                        </div>
+                        <h4 className="text-xs font-black uppercase tracking-widest text-foreground">Proyección Financiera</h4>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="p-4 rounded-2xl bg-secondary/50 border border-border/30">
+                            <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">ROI Estimado</span>
+                            <p className="text-sm font-black text-foreground/90 mt-1">{roi}</p>
+                        </div>
+                        <div className="p-4 rounded-2xl bg-secondary/50 border border-border/30">
+                            <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">Potencial Revenue</span>
+                            <p className="text-sm font-black text-foreground/90 mt-1">{revenue}</p>
+                        </div>
+                    </div>
+                    <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-primary">Condiciones de Pago</span>
+                        <p className="text-[11px] font-bold text-foreground/80 mt-1 leading-relaxed">{terms}</p>
+                    </div>
+                </div>
+
+                {/* Notas */}
+                {opp.meeting_notes && (
+                    <div className="bg-card rounded-3xl border border-border/50 p-6">
+                        <div className="flex items-center gap-2 mb-4">
+                            <MessageSquare size={16} className="text-muted-foreground/40" />
+                            <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground/40">Notas Estratégicas</h4>
+                        </div>
+                        <blockquote className="border-l-4 border-primary pl-4 py-1">
+                            <p className="text-xs text-muted-foreground font-medium italic leading-relaxed">
+                                &ldquo;{opp.meeting_notes}&rdquo;
+                            </p>
+                        </blockquote>
+                    </div>
+                )}
             </div>
         </div>
     )
@@ -980,10 +1088,10 @@ function TabRoadmap({ opp, realPhases, hasRealPhases }: { opp: any, realPhases: 
 
     return (
         <div className="space-y-5 animate-in fade-in duration-300">
-            <div className="bg-white rounded-2xl border border-slate-100 p-5">
+            <div className="bg-card rounded-2xl border border-border/50 p-5">
                 <div className="flex items-center gap-2 mb-6">
-                    <Calendar size={16} className="text-[#D4A843]" />
-                    <h3 className="text-xs font-black uppercase tracking-tighter text-slate-900">Cronograma del Proyecto</h3>
+                    <Calendar size={16} className="text-primary" />
+                    <h3 className="text-xs font-black uppercase tracking-tighter text-foreground">Cronograma del Proyecto</h3>
                 </div>
 
                 {hasRealPhases ? (
@@ -1001,40 +1109,40 @@ function TabRoadmap({ opp, realPhases, hasRealPhases }: { opp: any, realPhases: 
                                 <div key={phase.phase_key || i} className="flex gap-4">
                                     <div className="flex flex-col items-center">
                                         <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ring-4 transition-all ${
-                                            isDone ? 'bg-[#A7C7A3] text-white ring-[#A7C7A3]/30' :
-                                            isActive ? 'bg-[#FFE8BE] text-[#473E28] ring-[#FFE8BE]/30' :
-                                            'bg-slate-100 text-slate-300 ring-slate-100'
+                                            isDone ? 'bg-emerald-500 text-white ring-emerald-500/20' :
+                                            isActive ? 'bg-primary text-primary-foreground ring-primary/20' :
+                                            'bg-secondary text-muted-foreground/40 ring-secondary/50'
                                         }`}>
                                             <Icon size={16} />
                                         </div>
                                         {!isLast && (
-                                            <div className={`w-0.5 flex-1 my-1 ${isDone ? 'bg-[#A7C7A3]/40' : 'bg-slate-100'}`} />
+                                            <div className={`w-0.5 flex-1 my-1 ${isDone ? 'bg-emerald-500/40' : 'bg-border'}`} />
                                         )}
                                     </div>
                                     <div className="pb-6 flex-1">
                                         <div className="flex items-center gap-2 mb-1">
                                             <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                                                isDone ? 'bg-[#A7C7A3]/10 text-[#166534]' :
-                                                isActive ? 'bg-[#F2C272]/15 text-[#B45309]' :
-                                                'bg-slate-100 text-slate-400'
+                                                isDone ? 'bg-emerald-500/10 text-emerald-500' :
+                                                isActive ? 'bg-primary/20 text-primary' :
+                                                'bg-secondary text-muted-foreground/40'
                                             }`}>
                                                 {isDone ? 'Completado' : isActive ? 'En Curso' : 'Pendiente'}
                                             </span>
-                                            <span className="text-[10px] font-bold text-slate-400">{dateRange}</span>
+                                            <span className="text-[10px] font-bold text-muted-foreground/40">{dateRange}</span>
                                         </div>
-                                        <h4 className="text-sm font-black text-slate-800">{phase.phase_name}</h4>
+                                        <h4 className="text-sm font-black text-foreground/90">{phase.phase_name}</h4>
                                         <div className="flex items-center gap-3 mt-1">
-                                            <span className="text-xs text-slate-500 font-medium">
+                                            <span className="text-xs text-muted-foreground/60 font-medium">
                                                 {phase.duration_days} día{phase.duration_days !== 1 ? 's' : ''}
                                             </span>
-                                            <span className="text-xs text-slate-400">·</span>
-                                            <span className="text-xs text-slate-500 font-medium">
+                                            <span className="text-xs text-muted-foreground/40">·</span>
+                                            <span className="text-xs text-muted-foreground/60 font-medium">
                                                 {phase.revision_limit} revisión{phase.revision_limit !== 1 ? 'es' : ''}
                                             </span>
                                             {phase.requires_client_approval && (
                                                 <>
-                                                    <span className="text-xs text-slate-400">·</span>
-                                                    <span className="text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#F2C272]/15 text-[#B45309]">
+                                                    <span className="text-xs text-muted-foreground/40">·</span>
+                                                    <span className="text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary/20 text-primary">
                                                         Requiere aprobación
                                                     </span>
                                                 </>
@@ -1057,29 +1165,29 @@ function TabRoadmap({ opp, realPhases, hasRealPhases }: { opp: any, realPhases: 
                                 <div key={i} className="flex gap-4">
                                     <div className="flex flex-col items-center">
                                         <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-all ${
-                                            isPast ? 'bg-[#A7C7A3] text-white' :
-                                            isPresent ? 'bg-[#FFE8BE] text-[#473E28] ring-4 ring-[#FFE8BE]/30' :
-                                            'bg-slate-100 text-slate-300'
+                                            isPast ? 'bg-emerald-500 text-white' :
+                                            isPresent ? 'bg-primary text-primary-foreground ring-4 ring-primary/20' :
+                                            'bg-secondary text-muted-foreground/40'
                                         }`}>
                                             <Icon size={16} />
                                         </div>
                                         {i < ROADMAP_ITEMS.length - 1 && (
-                                            <div className={`w-0.5 flex-1 my-1 ${isPast ? 'bg-[#A7C7A3]/40' : 'bg-slate-100'}`} />
+                                            <div className={`w-0.5 flex-1 my-1 ${isPast ? 'bg-emerald-500/40' : 'bg-border'}`} />
                                         )}
                                     </div>
                                     <div className={`pb-6 flex-1 ${isFuture ? 'opacity-50' : ''}`}>
                                         <div className="flex items-center gap-2 mb-1">
                                             <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                                                isPast ? 'bg-[#A7C7A3]/10 text-[#166534]' :
-                                                isPresent ? 'bg-[#F2C272]/15 text-[#B45309]' :
-                                                'bg-slate-100 text-slate-400'
+                                                isPast ? 'bg-emerald-500/10 text-emerald-500' :
+                                                isPresent ? 'bg-primary/20 text-primary' :
+                                                'bg-secondary text-muted-foreground/40'
                                             }`}>
                                                 {isPast ? 'Completado' : isPresent ? 'En curso' : 'Pendiente'}
                                             </span>
-                                            <span className="text-[10px] font-bold text-slate-400">{item.date}</span>
+                                            <span className="text-[10px] font-bold text-muted-foreground/40">{item.date}</span>
                                         </div>
-                                        <h4 className="text-sm font-black text-slate-800">{item.title}</h4>
-                                        <p className="text-xs text-slate-500 font-medium leading-relaxed mt-1">{item.description}</p>
+                                        <h4 className="text-sm font-black text-foreground/90">{item.title}</h4>
+                                        <p className="text-xs text-muted-foreground/60 font-medium leading-relaxed mt-1">{item.description}</p>
                                     </div>
                                 </div>
                             )
@@ -1116,13 +1224,13 @@ export function ClientPortalView({ opportunity, client, catalog, phases: phasesP
     const hasRealPhases = realPhases.length > 0
 
     return (
-        <div className={`w-full mx-auto bg-[#F9FAFB] min-h-screen text-slate-900 transition-all duration-500 overflow-hidden ${
-            mode === 'mobile' ? 'max-w-[375px] shadow-2xl rounded-[40px] border-[8px] border-slate-800' : 'w-full shadow-lg'
+        <div className={`w-full mx-auto bg-background min-h-screen text-foreground transition-all duration-500 overflow-hidden ${
+            mode === 'mobile' ? 'max-w-[375px] shadow-2xl rounded-[40px] border-[8px] border-foreground' : 'w-full shadow-lg'
         }`}>
 
             {/* Virtual browser header (solo desktop y si no se oculta el header real) */}
             {mode === 'desktop' && !hideHeader && (
-                <div className="h-8 bg-slate-100 border-b border-slate-200 flex items-center px-4 gap-2">
+                <div className="h-8 bg-secondary/50 border-b border-border/50 flex items-center px-4 gap-2">
                     <div className="flex gap-1.5">
                         <div className="w-2.5 h-2.5 rounded-full bg-slate-300" />
                         <div className="w-2.5 h-2.5 rounded-full bg-slate-300" />
@@ -1143,14 +1251,14 @@ export function ClientPortalView({ opportunity, client, catalog, phases: phasesP
                 {activeTab === 'inteligencia' && <TabInteligenciaMercado client={client} />}
                 {activeTab === 'estrategia' && <TabEstrategiaDigital opp={opp} client={client} />}
                 {activeTab === 'tecnica' && <TabPropuestaTecnica opp={opp} catalog={catalog} phases={realPhases} />}
-                {activeTab === 'inversion' && <TabInversion opp={opp} />}
+                {activeTab === 'inversion' && <TabInversion opp={opp} catalog={catalog} />}
                 {activeTab === 'roadmap' && <TabRoadmap opp={opp} realPhases={realPhases} hasRealPhases={hasRealPhases} />}
             </main>
 
             {/* Footer */}
-            <footer className="px-4 py-6 border-t border-slate-100 bg-white text-center">
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-300">© FORTEX DIGITAL SOLUTIONS • AURA OS v2.0</p>
-                <p className="text-[9px] text-slate-300 mt-1 font-medium">Portal estratégico confidencial</p>
+            <footer className="px-4 py-6 border-t border-border/50 bg-card text-center">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">© FORTEX DIGITAL SOLUTIONS • AURA OS v2.0</p>
+                <p className="text-[9px] text-muted-foreground/40 mt-1 font-medium">Portal estratégico confidencial</p>
             </footer>
 
             <style jsx global>{`

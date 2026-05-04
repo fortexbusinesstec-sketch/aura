@@ -42,7 +42,7 @@ export async function getAvailableLeads(): Promise<{
     const { data, error } = await supabase
         .from('opportunities')
         .select('*, client:clients(*)')
-        .in('status', ['approved', 'in_progress', 'won'])
+        .in('status', ['quoted', 'approved', 'in_progress', 'won'])
         .order('created_at', { ascending: false })
 
     if (error) {

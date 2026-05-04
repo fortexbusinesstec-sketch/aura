@@ -1,0 +1,50 @@
+/**
+ * ══════════════════════════════════════════════════════
+ * AURA OS — Tema "Forest" (Verde bosque / Natural)
+ * ══════════════════════════════════════════════════════
+ */
+
+.forest-theme {
+  /* ── 1. FONDOS Y TEXTOS BASE ─────────────────────── */
+  --background:           120 20% 95%;
+  --foreground:           120 30% 12%;
+
+  /* ── 2. PANELES Y TARJETAS ───────────────────────── */
+  --card:                 0 0% 100%;
+  --card-foreground:      120 30% 12%;
+  --popover:              0 0% 100%;
+  --popover-foreground:   120 30% 12%;
+
+  /* ── 3. ACCIÓN PRIMARIA Y BOTONES ────────────────── */
+  --primary:              142 60% 38%;
+  --primary-foreground:   0 0% 100%;
+
+  --secondary:            120 18% 90%;
+  --secondary-foreground: 120 30% 12%;
+
+  /* ── 4. ESTADO MUTED ─────────────────────────────── */
+  --muted:                120 15% 88%;
+  --muted-foreground:     120 12% 44%;
+
+  /* ── 5. ACCENT / HOVER ───────────────────────────── */
+  --accent:               120 22% 91%;
+  --accent-foreground:    120 30% 12%;
+
+  /* ── 6. ESTADOS Y ALERTAS ───────────────────────── */
+  --destructive:          6 62% 66%;
+  --destructive-foreground: 0 0% 100%;
+
+  --success:              142 60% 38%;
+  --success-foreground:   0 0% 100%;
+
+  --warning:              38 92% 50%;
+  --warning-foreground:   0 0% 100%;
+
+  /* ── 7. ESTRUCTURA: BORDES Y FOCOS ──────────────── */
+  --border:               120 14% 84%;
+  --input:                120 14% 84%;
+  --ring:                 142 60% 38%;
+
+  /* ── 8. RADIO ESTÁNDAR ───────────────────────────── */
+  --radius:               0.75rem;
+}

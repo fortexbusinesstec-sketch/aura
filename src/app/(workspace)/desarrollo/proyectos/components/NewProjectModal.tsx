@@ -311,7 +311,7 @@ export function NewProjectModal({ isOpen, onClose, onSuccess }: NewProjectModalP
                         No hay leads disponibles para convertir
                     </p>
                     <p className="text-[10px] text-muted-foreground/60 mt-1">
-                        Los leads deben estar aprobados y tener roadmap configurado.
+                        Los leads deben estar publicados (portal activo) o aprobados, y tener roadmap configurado.
                     </p>
                 </div>
             )}

@@ -8,7 +8,7 @@ const environments = [
         icon: Terminal,
         href: '/desarrollo',
         color: '#ff9e64', // Naranja
-        glowClass: 'hover:shadow-[0_0_30px_rgba(255,158,100,0.3)] hover:border-warning/50',
+        glowClass: 'hover:shadow-[0_0_30px_rgba(255,158,100,0.2)] hover:border-[#ff9e64]/30',
     },
     {
         title: 'Laboratory',
@@ -16,7 +16,7 @@ const environments = [
         icon: FlaskConical,
         href: '/laboratorio',
         color: '#bb9af7', // Magenta
-        glowClass: 'hover:shadow-[0_0_30px_rgba(187,154,247,0.3)] hover:border-secondary/50',
+        glowClass: 'hover:shadow-[0_0_30px_rgba(187,154,247,0.2)] hover:border-[#bb9af7]/30',
     },
     {
         title: 'Finance',
@@ -24,7 +24,7 @@ const environments = [
         icon: LineChart,
         href: '/finanzas',
         color: '#7dcfff', // Cyan
-        glowClass: 'hover:shadow-[0_0_30px_rgba(125,207,255,0.3)] hover:border-accent/50',
+        glowClass: 'hover:shadow-[0_0_30px_rgba(125,207,255,0.2)] hover:border-[#7dcfff]/30',
     },
     {
         title: 'Product',
@@ -32,7 +32,7 @@ const environments = [
         icon: Box,
         href: '/producto',
         color: '#73daca', // Emerald
-        glowClass: 'hover:shadow-[0_0_30px_rgba(115,218,202,0.3)] hover:border-primary/50',
+        glowClass: 'hover:shadow-[0_0_30px_rgba(115,218,202,0.2)] hover:border-[#73daca]/30',
     },
 ]
 
@@ -69,8 +69,8 @@ export default function EntornoPage() {
                                     <Icon className="h-16 w-16" strokeWidth={1.5} />
                                 </div>
 
-                                <h2 className="text-2xl font-bold text-foreground mb-4 tracking-tight">{env.title}</h2>
-                                <p className="text-center text-sm text-foreground/60 leading-relaxed max-w-[200px]">
+                                <h2 className="text-2xl font-bold text-foreground mb-4 tracking-tight group-hover:text-foreground transition-colors">{env.title}</h2>
+                                <p className="text-center text-sm text-foreground/60 leading-relaxed max-w-[200px] group-hover:text-foreground/80 transition-colors">
                                     {env.description}
                                 </p>
 

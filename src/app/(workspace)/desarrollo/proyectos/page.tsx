@@ -25,7 +25,6 @@ import {
 interface ProjectWithPhases extends Project {
     client: Client | null
     phases: ProjectPhase[]
-    opportunity?: { portal_token: string | null } | null
 }
 
 type FilterTab = 'all' | 'active' | 'completed' | 'paused'
@@ -80,7 +79,7 @@ export default function ProyectosPage() {
         setIsLoading(true)
         const { data, error } = await supabase
             .from('projects')
-            .select('*, client:clients(*), phases:project_phases(*), opportunity:opportunities(portal_token)')
+            .select('*, client:clients(*), phases:project_phases(*)')
             .order('created_at', { ascending: false })
 
         if (error) {

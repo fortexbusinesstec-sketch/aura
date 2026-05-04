@@ -20,3 +20,14 @@ export async function createClientAction(data: NewClient) {
 
     return { success: false, error: error.message }
 }
+
+export async function updateClientAction(id: string, data: Partial<NewClient>) {
+    const { error } = await ClientRepository.update(id, data)
+
+    if (!error) {
+        revalidatePath('/desarrollo/clientes')
+        return { success: true }
+    }
+
+    return { success: false, error: error.message }
+}

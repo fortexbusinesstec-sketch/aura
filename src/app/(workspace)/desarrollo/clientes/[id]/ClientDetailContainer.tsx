@@ -21,10 +21,14 @@ import {
     X,
     Plus,
     Trash2,
-    ChevronDown
+    ChevronDown,
+    UserPlus,
+    RefreshCw,
+    ShieldCheck
 } from 'lucide-react'
-import { updateClientAction } from './actions'
+import { updateClientAction, convertCompetitorAction } from './actions'
 import { useRouter } from 'next/navigation'
+import { Modal } from '@/components/ui/Modal'
 import Link from 'next/link'
 
 interface ClientDetailContainerProps {
@@ -128,6 +132,12 @@ export function ClientDetailContainer({ initialClient, opportunities }: ClientDe
     const [isPending, startTransition] = useTransition()
     const [showSuccessModal, setShowSuccessModal] = useState(false)
     const [showCopyToast, setShowCopyToast] = useState(false)
+    const [isConverting, setIsConverting] = useState(false)
+    const [competitorToConvert, setCompetitorToConvert] = useState<{ index: number; name: string } | null>(null)
+    const [conversionOptions, setConversionOptions] = useState({
+        syncNetwork: true,
+        copyIndustry: true
+    })
 
     // Robust data migration / initialization
     const sanitizeProfile = (raw?: any): ClientProfile => {
@@ -213,6 +223,86 @@ export function ClientDetailContainer({ initialClient, opportunities }: ClientDe
         }))
     }
 
+    const handleConvertCompetitor = async () => {
+        if (!competitorToConvert) return
+        setIsConverting(true)
+
+        const sourceCompetitor = insights.competitors_detected[competitorToConvert.index]
+        
+        // 1. Prepare profile
+        const newProfile: ClientProfile = {
+            industry: conversionOptions.copyIndustry ? profile.industry : '',
+            business_model: conversionOptions.copyIndustry ? profile.business_model : '',
+            target_market: conversionOptions.copyIndustry ? profile.target_market : '',
+            value_proposition: conversionOptions.copyIndustry ? profile.value_proposition : '',
+            website: '',
+            social_links: '',
+            digital_presence: {
+                website: { quality: '', observations: '' },
+                ads: { status: '', observations: '' },
+                seo: { status: '', observations: '' },
+                social: { status: '', observations: '' }
+            },
+            brand_positioning: {
+                tone: [],
+                colors: [],
+                perceived_level: {
+                    level: sourceCompetitor.segment.toLowerCase() === 'premium' ? 'premium' : 
+                           sourceCompetitor.segment.toLowerCase() === 'medio-alto' ? 'mid' : 'low' as any,
+                    observations: `Convertido desde competidor de ${client.razon_social}.`
+                }
+            }
+        }
+
+        // 2. Prepare insights
+        const newInsights: ClientInsights = {
+            initial_observations: {
+                key_finding: `Cliente detectado como competidor estratégico de ${client.razon_social}. Fortaleza detectada: ${sourceCompetitor.strength}`
+            },
+            competitors_detected: [],
+            market_notes: [],
+            technical_conclusion: {
+                diagnosis: '',
+                immediate_opportunities: []
+            }
+        }
+
+        if (conversionOptions.syncNetwork) {
+            // Add current client
+            newInsights.competitors_detected.push({
+                name: client.razon_social,
+                segment: profile.brand_positioning.perceived_level.level === 'premium' ? 'Premium' : 'Medio' as any,
+                strength: 'Cliente origen de esta inteligencia.'
+            })
+            // Add other competitors
+            insights.competitors_detected.forEach((c, idx) => {
+                if (idx !== competitorToConvert.index) {
+                    newInsights.competitors_detected.push({ ...c })
+                }
+            })
+        }
+
+        const newClientData = {
+            razon_social: competitorToConvert.name,
+            ruc: '',
+            persona_contacto: '',
+            email: '',
+            client_profile_jsonb: newProfile,
+            client_insights_jsonb: newInsights,
+            portal_token: Math.random().toString(36).substring(2, 15)
+        }
+
+        const result = await convertCompetitorAction(newClientData)
+        setIsConverting(false)
+
+        if (result.success) {
+            setCompetitorToConvert(null)
+            router.push(`/desarrollo/clientes/${result.data.id}`)
+        } else {
+            alert('Error al convertir: ' + result.error)
+        }
+    }
+
     const addCompetitor = () => {
         const newCompetitors = [...insights.competitors_detected, { name: '', segment: '' as any, strength: '' }]
         updateInsights({ competitors_detected: newCompetitors })
@@ -262,26 +352,26 @@ export function ClientDetailContainer({ initialClient, opportunities }: ClientDe
     }
 
     const copyIntelligencePrompt = () => {
-        const prompt = `Actúa como un experto en inteligencia competitiva y estrategia de mercado senior. Necesito un peritaje profundo sobre la empresa "Grupo Norte" y su impacto en el sector donde opera mi cliente: ${client.razon_social}.
+        const prompt = `Actúa como un experto en inteligencia competitiva y estrategia de mercado senior. Necesito un peritaje profundo sobre la empresa "${client.razon_social}" y su impacto en el sector donde opera.
 
 Tu objetivo es proporcionarme datos estructurados que pueda mapear directamente a los campos de Inteligencia Interna de mi sistema Aura OS. Responde siguiendo esta estructura técnica exacta:
 
-1. HALLAZGO CLAVE (key_finding): Un párrafo técnico y potente sobre la posición de dominio o debilidad de Grupo Norte en el mercado actual.
+1. HALLAZGO CLAVE (key_finding): Un párrafo técnico y potente sobre la posición de dominio o debilidad de "${client.razon_social}" en el mercado actual.
 
 2. ANÁLISIS DE COMPETIDOR (Para la lista de competidores):
-   - Nombre: Grupo Norte
+   - Nombre: [NOMBRE_COMPETIDOR_DETECTADO]
    - Segmento: (Premium / Medio-Alto / Medio / Low-cost)
    - Fortaleza Detectada: (Qué los hace líderes o qué diferencial están explotando mejor)
 
 3. TENDENCIAS Y NOTAS DE MERCADO:
    - Tendencia Detectada: (Nombre de la tendencia. Ej: Tokenización Inmobiliaria) + Impacto: (Cómo esta tendencia capitalizada por la competencia afecta a ${client.razon_social})
 
-4. DIAGNÓSTICO TÉCNICO: Un análisis comparativo de brecha digital entre ${client.razon_social} y Grupo Norte. ¿Dónde está perdiendo terreno mi cliente?
+4. DIAGNÓSTICO TÉCNICO: Un análisis comparativo de brecha digital de "${client.razon_social}" frente a sus competidores principales. ¿Dónde está perdiendo terreno el cliente?
 
 5. OPORTUNIDADES ESTRATÉGICAS (Acciones inmediatas para superar o diferenciarse):
    - Acción: (Nombre de la acción técnica) + Detalle: (Explicación estratégica de por qué esta acción neutraliza la ventaja de la competencia)
 
-Sé quirúrgico en el análisis, utiliza datos reales que encuentres en el ecosistema digital de Grupo Norte y mantén un lenguaje de alta dirección.`
+Sé quirúrgico en el análisis, utiliza datos reales que encuentres en el ecosistema digital de "${client.razon_social}" y sus competidores, y mantén un lenguaje de alta dirección.`
 
         navigator.clipboard.writeText(prompt)
         setShowCopyToast(true)
@@ -612,12 +702,23 @@ Sé objetivo, técnico y directo. Evita introducciones innecesarias.`
                                             >
                                                 <Trash2 size={14} />
                                             </button>
-                                            <input
-                                                className="w-full bg-transparent text-sm font-bold outline-none border-b border-border/30 pb-2 focus:border-primary transition-all pr-8"
-                                                placeholder="Nombre del competidor"
-                                                value={comp.name}
-                                                onChange={e => updateCompetitor(i, { name: e.target.value })}
-                                            />
+                                                <div className="flex items-center gap-2">
+                                                    <input
+                                                        className="flex-1 bg-transparent text-sm font-bold outline-none border-b border-border/30 pb-2 focus:border-primary transition-all pr-8"
+                                                        placeholder="Nombre del competidor"
+                                                        value={comp.name}
+                                                        onChange={e => updateCompetitor(i, { name: e.target.value })}
+                                                    />
+                                                    <button
+                                                        onClick={() => setCompetitorToConvert({ index: i, name: comp.name })}
+                                                        disabled={!comp.name}
+                                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all text-[10px] font-black uppercase tracking-widest disabled:opacity-30"
+                                                        title="Convertir en Perfil de Cliente"
+                                                    >
+                                                        <UserPlus size={12} />
+                                                        Perfil
+                                                    </button>
+                                                </div>
                                             <FtxSelect
                                                 value={comp.segment}
                                                 onChange={val => updateCompetitor(i, { segment: val })}
@@ -781,6 +882,93 @@ Sé objetivo, técnico y directo. Evita introducciones innecesarias.`
                     </div>
                 </div>
             )}
+
+            {/* MODAL DE CONVERSIÓN DE COMPETIDOR */}
+            <Modal
+                isOpen={!!competitorToConvert}
+                onClose={() => setCompetitorToConvert(null)}
+                title="Convertir Competidor en Perfil"
+                className="max-w-lg"
+            >
+                <div className="space-y-6">
+                    <div className="flex items-center gap-4 p-6 rounded-3xl bg-primary/5 border border-primary/10">
+                        <div className="h-12 w-12 rounded-2xl bg-primary/20 flex items-center justify-center text-primary">
+                            <UserPlus size={24} />
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-primary/60">Nuevo Cliente</p>
+                            <h4 className="text-lg font-black text-foreground uppercase truncate max-w-[250px]">{competitorToConvert?.name}</h4>
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        <p className="text-xs font-bold text-foreground/60 italic">
+                            Esta acción creará un nuevo perfil de cliente en Aura OS utilizando la inteligencia detectada hasta ahora.
+                        </p>
+
+                        <div className="space-y-3">
+                            {/* Opción 1: Sincronizar Red */}
+                            <div 
+                                onClick={() => setConversionOptions(prev => ({ ...prev, syncNetwork: !prev.syncNetwork }))}
+                                className={`flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer ${
+                                    conversionOptions.syncNetwork ? 'bg-primary/5 border-primary/20' : 'bg-background border-border/50 opacity-60'
+                                }`}
+                            >
+                                <div className="flex items-center gap-3">
+                                    <RefreshCw size={18} className={conversionOptions.syncNetwork ? 'text-primary' : 'text-muted-foreground'} />
+                                    <div>
+                                        <h5 className="text-[11px] font-black uppercase tracking-widest">Sincronizar Red de Competencia</h5>
+                                        <p className="text-[10px] font-medium text-foreground/40 mt-0.5">Incluye a {client.razon_social} y otros competidores.</p>
+                                    </div>
+                                </div>
+                                <div className={`h-5 w-10 rounded-full transition-all flex items-center px-1 ${conversionOptions.syncNetwork ? 'bg-primary' : 'bg-muted-foreground/30'}`}>
+                                    <div className={`h-3 w-3 rounded-full bg-white transition-all ${conversionOptions.syncNetwork ? 'translate-x-5' : 'translate-x-0'}`} />
+                                </div>
+                            </div>
+
+                            {/* Opción 2: Copiar ADN Industria */}
+                            <div 
+                                onClick={() => setConversionOptions(prev => ({ ...prev, copyIndustry: !prev.copyIndustry }))}
+                                className={`flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer ${
+                                    conversionOptions.copyIndustry ? 'bg-primary/5 border-primary/20' : 'bg-background border-border/50 opacity-60'
+                                }`}
+                            >
+                                <div className="flex items-center gap-3">
+                                    <ShieldCheck size={18} className={conversionOptions.copyIndustry ? 'text-primary' : 'text-muted-foreground'} />
+                                    <div>
+                                        <h5 className="text-[11px] font-black uppercase tracking-widest">Copiar ADN de Industria</h5>
+                                        <p className="text-[10px] font-medium text-foreground/40 mt-0.5">Heredar Industria, Modelo y Segmento de mercado.</p>
+                                    </div>
+                                </div>
+                                <div className={`h-5 w-10 rounded-full transition-all flex items-center px-1 ${conversionOptions.copyIndustry ? 'bg-primary' : 'bg-muted-foreground/30'}`}>
+                                    <div className={`h-3 w-3 rounded-full bg-white transition-all ${conversionOptions.copyIndustry ? 'translate-x-5' : 'translate-x-0'}`} />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex gap-3 pt-4">
+                        <button
+                            onClick={() => setCompetitorToConvert(null)}
+                            className="flex-1 py-4 rounded-2xl border border-border text-[10px] font-black uppercase tracking-widest hover:bg-secondary transition-all"
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            onClick={handleConvertCompetitor}
+                            disabled={isConverting}
+                            className="flex-[2] py-4 rounded-2xl bg-primary text-primary-foreground text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all flex items-center justify-center gap-2"
+                        >
+                            {isConverting ? (
+                                <RefreshCw size={16} className="animate-spin" />
+                            ) : (
+                                <UserPlus size={16} />
+                            )}
+                            {isConverting ? 'Coreografiando...' : 'Confirmar Creación'}
+                        </button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     )
 }

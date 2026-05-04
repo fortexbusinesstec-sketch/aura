@@ -15,3 +15,14 @@ export async function updateClientAction(id: string, updates: Partial<Client>) {
 
     return { success: false, error: error.message }
 }
+
+export async function convertCompetitorAction(newClientData: Omit<Client, 'id' | 'created_at'>) {
+    const { data, error } = await ClientRepository.create(newClientData)
+
+    if (!error && data) {
+        revalidatePath('/desarrollo/clientes')
+        return { success: true, data }
+    }
+
+    return { success: false, error: error?.message || 'Error desconocido' }
+}

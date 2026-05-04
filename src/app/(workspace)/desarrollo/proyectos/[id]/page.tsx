@@ -35,7 +35,6 @@ interface ProjectDetail extends Project {
     lead_dev: Profile | null
     project_manager: Profile | null
     phases: ProjectPhase[]
-    opportunity?: { portal_token: string | null } | null
 }
 
 // ------------------------------------------------------------------
@@ -89,7 +88,7 @@ export default function ProjectDetailPage() {
             const { data, error } = await supabase
                 .from('projects')
                 .select(
-                    '*, client:clients(*), lead_dev:profiles!projects_lead_dev_id_fkey(*), project_manager:profiles!projects_project_manager_id_fkey(*), phases:project_phases(*), opportunity:opportunities(portal_token)'
+                    '*, client:clients(*), lead_dev:profiles!projects_lead_dev_id_fkey(*), project_manager:profiles!projects_project_manager_id_fkey(*), phases:project_phases(*)'
                 )
                 .eq('id', id)
                 .single()
@@ -223,7 +222,7 @@ export default function ProjectDetailPage() {
                             <FilesTab phases={project.phases || []} />
                         )}
                         {activeTab === 'portal' && (
-                            <PortalTab portalToken={project.opportunity?.portal_token || null} />
+                            <PortalTab portalToken={project.client?.portal_token || null} />
                         )}
                     </div>
                 </div>
@@ -243,7 +242,7 @@ export default function ProjectDetailPage() {
                         client={project.client}
                         leadDev={project.lead_dev}
                         projectManager={project.project_manager}
-                        portalToken={project.opportunity?.portal_token || null}
+                        portalToken={project.client?.portal_token || null}
                     />
                 </div>
             </div>

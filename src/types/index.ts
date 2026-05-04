@@ -33,9 +33,9 @@ export interface ClientInsights {
 export interface Client {
     id: string
     razon_social: string
-    ruc: string
-    persona_contacto: string
-    email: string
+    ruc?: string
+    persona_contacto?: string
+    email?: string
     portal_token: string
     pin_code: string | null
     client_profile_jsonb?: ClientProfile

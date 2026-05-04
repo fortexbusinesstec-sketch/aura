@@ -1,0 +1,50 @@
+/**
+ * ══════════════════════════════════════════════════════
+ * AURA OS — Tema "Midnight" (Oscuro / Dark Mode)
+ * ══════════════════════════════════════════════════════
+ */
+
+.midnight-theme {
+  /* ── 1. FONDOS Y TEXTOS BASE ─────────────────────── */
+  --background:           222 20% 10%;
+  --foreground:           210 20% 92%;
+
+  /* ── 2. PANELES Y TARJETAS ───────────────────────── */
+  --card:                 222 20% 14%;
+  --card-foreground:      210 20% 92%;
+  --popover:              222 20% 13%;
+  --popover-foreground:   210 20% 92%;
+
+  /* ── 3. ACCIÓN PRIMARIA Y BOTONES ────────────────── */
+  --primary:              217 91% 60%;
+  --primary-foreground:   0 0% 100%;
+
+  --secondary:            222 20% 18%;
+  --secondary-foreground: 210 20% 92%;
+
+  /* ── 4. ESTADO MUTED ─────────────────────────────── */
+  --muted:                222 18% 20%;
+  --muted-foreground:     215 14% 55%;
+
+  /* ── 5. ACCENT / HOVER ───────────────────────────── */
+  --accent:               222 20% 22%;
+  --accent-foreground:    210 20% 92%;
+
+  /* ── 6. ESTADOS Y ALERTAS ───────────────────────── */
+  --destructive:          0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+
+  --success:              142 71% 45%;
+  --success-foreground:   0 0% 100%;
+
+  --warning:              38 92% 50%;
+  --warning-foreground:   0 0% 100%;
+
+  /* ── 7. ESTRUCTURA: BORDES Y FOCOS ──────────────── */
+  --border:               222 18% 22%;
+  --input:                222 18% 22%;
+  --ring:                 217 91% 60%;
+
+  /* ── 8. RADIO ESTÁNDAR ───────────────────────────── */
+  --radius:               0.75rem;
+}

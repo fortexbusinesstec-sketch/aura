@@ -472,13 +472,15 @@ export const usePitchStore = create<PitchState>((set, get) => ({
             if (item) subtotalCapex += item.base_price_pen
         })
 
+        let infraCapex = 0
         // Sum Infrastructure
         draft.selectedInfrastructureIds.forEach(id => {
             const item = catalog.find(i => i.id === id)
             if (item) {
-                if (item.category === 'hosting_internal' || item.category === 'hosting_external') {
+                if (item.category === 'hosting_internal') {
                     subtotalOpex += item.base_price_pen
                 } else {
+                    infraCapex += item.base_price_pen
                     subtotalCapex += item.base_price_pen
                 }
             }
@@ -495,6 +497,7 @@ export const usePitchStore = create<PitchState>((set, get) => ({
                     ...state.currentOpportunity.draft_jsonb!,
                     totalCapex,
                     totalOpex,
+                    totalInfraCapex: infraCapex,
                     totalCalculated: totalCapex + totalOpex
                 }
             }
@@ -514,6 +517,7 @@ export const usePitchStore = create<PitchState>((set, get) => ({
 
         const rawData = { ...currentOpportunity }
         delete (rawData as any).client
+        delete (rawData as any).is_deployed // Remove non-existent column to prevent PGRST204 error
 
         if (rawData.id === "" || rawData.id === undefined) {
             delete rawData.id

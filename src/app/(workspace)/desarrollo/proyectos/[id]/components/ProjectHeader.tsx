@@ -37,51 +37,51 @@ const STATUS_CONFIG: Record<
 > = {
     planning: {
         label: 'Planificación',
-        bg: 'bg-slate-100',
-        text: 'text-slate-700',
-        border: 'border-slate-200',
+        bg: 'bg-muted/50',
+        text: 'text-muted-foreground',
+        border: 'border-border',
         icon: <Clock size={14} />,
     },
     active: {
         label: 'En Progreso',
-        bg: 'bg-emerald-50',
-        text: 'text-emerald-700',
-        border: 'border-emerald-200',
+        bg: 'bg-primary/10',
+        text: 'text-primary',
+        border: 'border-primary/20',
         icon: <Route size={14} />,
     },
     paused: {
         label: 'Pausado',
-        bg: 'bg-amber-50',
-        text: 'text-amber-700',
-        border: 'border-amber-200',
+        bg: 'bg-amber-500/10',
+        text: 'text-amber-600',
+        border: 'border-amber-500/20',
         icon: <Pause size={14} />,
     },
     review: {
         label: 'En Revisión',
-        bg: 'bg-sky-50',
-        text: 'text-sky-700',
-        border: 'border-sky-200',
+        bg: 'bg-blue-500/10',
+        text: 'text-blue-600',
+        border: 'border-blue-500/20',
         icon: <AlertCircle size={14} />,
     },
     completed: {
         label: 'Completado',
-        bg: 'bg-teal-50',
-        text: 'text-teal-700',
-        border: 'border-teal-200',
+        bg: 'bg-emerald-500/10',
+        text: 'text-emerald-600',
+        border: 'border-emerald-500/20',
         icon: <CheckCircle2 size={14} />,
     },
     cancelled: {
         label: 'Cancelado',
-        bg: 'bg-red-50',
-        text: 'text-red-700',
-        border: 'border-red-200',
+        bg: 'bg-destructive/10',
+        text: 'text-destructive',
+        border: 'border-destructive/20',
         icon: <XCircle size={14} />,
     },
     maintenance: {
         label: 'Mantenimiento',
-        bg: 'bg-violet-50',
-        text: 'text-violet-700',
-        border: 'border-violet-200',
+        bg: 'bg-indigo-500/10',
+        text: 'text-indigo-600',
+        border: 'border-indigo-500/20',
         icon: <Wrench size={14} />,
     },
 }
@@ -167,7 +167,7 @@ export function ProjectHeader({ project, client, daysRemaining, onStatusChange }
                     </div>
                     <div>
                         <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Días Restantes</p>
-                        <p className={`text-xs font-bold ${daysRemaining !== null && daysRemaining < 0 ? 'text-red-600' : 'text-foreground'}`}>
+                        <p className={`text-xs font-bold ${daysRemaining !== null && daysRemaining < 0 ? 'text-destructive' : 'text-foreground'}`}>
                             {daysRemaining !== null
                                 ? daysRemaining < 0
                                     ? `${Math.abs(daysRemaining)} días de retraso`
@@ -185,7 +185,7 @@ export function ProjectHeader({ project, client, daysRemaining, onStatusChange }
                         href={project.linear_project_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 px-4 py-2.5 bg-card hover:bg-accent/50 transition-all rounded-xl border border-border/60 active:scale-95"
+                        className="flex items-center gap-2 px-4 py-2.5 bg-background hover:bg-secondary transition-all rounded-xl border border-border active:scale-95"
                     >
                         <ExternalLink size={14} className="text-muted-foreground" />
                         <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
@@ -194,23 +194,13 @@ export function ProjectHeader({ project, client, daysRemaining, onStatusChange }
                     </a>
                 )}
 
-                <button
-                    onClick={() => { /* TODO: implementar vista de contrato */ }}
-                    className="flex items-center gap-2 px-4 py-2.5 bg-card hover:bg-accent/50 transition-all rounded-xl border border-border/60 active:scale-95"
-                >
-                    <FileText size={14} className="text-muted-foreground" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                        Ver Contrato
-                    </span>
-                </button>
-
                 {canPause && (
                     <button
                         onClick={() => onStatusChange('paused')}
-                        className="flex items-center gap-2 px-4 py-2.5 bg-amber-50 hover:bg-amber-100 transition-all rounded-xl border border-amber-200 active:scale-95"
+                        className="flex items-center gap-2 px-4 py-2.5 bg-amber-500/10 hover:bg-amber-500/20 transition-all rounded-xl border border-amber-500/20 active:scale-95"
                     >
-                        <Pause size={14} className="text-amber-700" />
-                        <span className="text-[10px] font-black uppercase tracking-widest text-amber-700">
+                        <Pause size={14} className="text-amber-600" />
+                        <span className="text-[10px] font-black uppercase tracking-widest text-amber-600">
                             Pausar Proyecto
                         </span>
                     </button>
@@ -219,10 +209,10 @@ export function ProjectHeader({ project, client, daysRemaining, onStatusChange }
                 {isPaused && (
                     <button
                         onClick={() => onStatusChange('active')}
-                        className="flex items-center gap-2 px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 transition-all rounded-xl border border-emerald-200 active:scale-95"
+                        className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 transition-all rounded-xl border border-emerald-500/20 active:scale-95"
                     >
-                        <Play size={14} className="text-emerald-700" />
-                        <span className="text-[10px] font-black uppercase tracking-widest text-emerald-700">
+                        <Play size={14} className="text-emerald-600" />
+                        <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">
                             Reanudar
                         </span>
                     </button>
@@ -231,10 +221,10 @@ export function ProjectHeader({ project, client, daysRemaining, onStatusChange }
                 {canComplete && (
                     <button
                         onClick={() => onStatusChange('completed')}
-                        className="flex items-center gap-2 px-4 py-2.5 bg-teal-50 hover:bg-teal-100 transition-all rounded-xl border border-teal-200 active:scale-95"
+                        className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 transition-all rounded-xl border border-emerald-500/20 active:scale-95"
                     >
-                        <CheckCircle2 size={14} className="text-teal-700" />
-                        <span className="text-[10px] font-black uppercase tracking-widest text-teal-700">
+                        <CheckCircle2 size={14} className="text-emerald-600" />
+                        <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">
                             Marcar Completado
                         </span>
                     </button>
@@ -243,7 +233,7 @@ export function ProjectHeader({ project, client, daysRemaining, onStatusChange }
                 {(isCompleted || isCancelled) && (
                     <button
                         onClick={() => onStatusChange('active')}
-                        className="flex items-center gap-2 px-4 py-2.5 bg-secondary hover:bg-accent/50 transition-all rounded-xl border border-border active:scale-95"
+                        className="flex items-center gap-2 px-4 py-2.5 bg-secondary hover:bg-accent transition-all rounded-xl border border-border active:scale-95"
                     >
                         <Play size={14} className="text-muted-foreground" />
                         <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">

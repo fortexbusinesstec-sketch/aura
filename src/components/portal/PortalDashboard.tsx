@@ -19,7 +19,7 @@ export function PortalDashboard({ client, project, phases, catalog, onLogout, po
     const [activeTab, setActiveTab] = useState<TabId>('resumen')
 
     return (
-        <div className="min-h-screen bg-[#F9FAFB] text-slate-900 font-sans">
+        <div className="min-h-screen bg-background text-foreground font-sans">
             <PortalHeader
                 client={client}
                 project={project}
@@ -40,19 +40,19 @@ export function PortalDashboard({ client, project, phases, catalog, onLogout, po
             </main>
 
             {/* Footer Unificado Aura OS */}
-            <footer className="border-t border-slate-100 bg-white py-12 text-center mt-12">
+            <footer className="border-t border-border/50 bg-card py-12 text-center mt-12">
                 <div className="flex flex-col items-center gap-6">
-                    <div className="flex items-center gap-2.5 opacity-20 hover:opacity-40 transition-opacity">
-                        <div className="w-8 h-8 bg-slate-900 rounded-xl flex items-center justify-center">
-                            <span className="text-white font-black text-[12px]">A</span>
+                    <div className="flex items-center gap-2.5 opacity-40 hover:opacity-100 transition-opacity">
+                        <div className="w-8 h-8 bg-primary rounded-xl flex items-center justify-center">
+                            <span className="text-primary-foreground font-black text-[12px]">A</span>
                         </div>
-                        <span className="font-black text-xs uppercase tracking-tighter text-slate-900">Aura OS</span>
+                        <span className="font-black text-xs uppercase tracking-tighter text-foreground">Aura OS</span>
                     </div>
                     <div className="space-y-1.5">
-                        <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-300">
+                        <p className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground/60">
                             © FORTEX DIGITAL SOLUTIONS • PROPIEDAD INTELECTUAL
                         </p>
-                        <p className="text-[9px] text-slate-300 font-medium max-w-xs mx-auto leading-relaxed">
+                        <p className="text-[9px] text-muted-foreground font-medium max-w-xs mx-auto leading-relaxed">
                             Este portal estratégico es confidencial y ha sido generado específicamente para {client?.razon_social || 'el cliente'}.
                         </p>
                     </div>

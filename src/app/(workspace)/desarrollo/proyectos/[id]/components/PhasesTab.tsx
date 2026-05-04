@@ -52,14 +52,14 @@ function formatDate(dateStr: string | null | undefined): string {
 }
 
 const PHASE_STATUS_CONFIG: Record<string, { label: string; bg: string; text: string; border: string }> = {
-    pending: { label: 'Pendiente', bg: 'bg-slate-100', text: 'text-slate-600', border: 'border-slate-200' },
-    in_progress: { label: 'En Progreso', bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200' },
-    in_review: { label: 'En Revisión', bg: 'bg-violet-50', text: 'text-violet-700', border: 'border-violet-200' },
-    client_review: { label: 'Esperando Cliente', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
-    approved: { label: 'Aprobada', bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
-    blocked: { label: 'Bloqueado', bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' },
-    completed: { label: 'Completada', bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-200' },
-    skipped: { label: 'Omitida', bg: 'bg-gray-100', text: 'text-gray-500', border: 'border-gray-200' },
+    pending: { label: 'Pendiente', bg: 'bg-secondary', text: 'text-muted-foreground', border: 'border-border/50' },
+    in_progress: { label: 'En Progreso', bg: 'bg-primary/10', text: 'text-primary', border: 'border-primary/20' },
+    in_review: { label: 'En Revisión', bg: 'bg-indigo-500/10', text: 'text-indigo-500', border: 'border-indigo-500/20' },
+    client_review: { label: 'Esperando Cliente', bg: 'bg-amber-500/10', text: 'text-amber-500', border: 'border-amber-500/20' },
+    approved: { label: 'Aprobada', bg: 'bg-emerald-500/10', text: 'text-emerald-500', border: 'border-emerald-500/20' },
+    blocked: { label: 'Bloqueado', bg: 'bg-destructive/10', text: 'text-destructive', border: 'border-destructive/20' },
+    completed: { label: 'Completada', bg: 'bg-teal-500/10', text: 'text-teal-500', border: 'border-teal-500/20' },
+    skipped: { label: 'Omitida', bg: 'bg-secondary/50', text: 'text-muted-foreground/40', border: 'border-border/30' },
 }
 
 function getPhaseIcon(status: string) {
@@ -196,7 +196,7 @@ export function PhasesTab({ phases, project }: PhasesTabProps) {
                                                             {cfg.label}
                                                         </span>
                                                         {phase.client_approved_at && (
-                                                            <span className="px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 text-[9px] font-black uppercase flex items-center gap-1">
+                                                            <span className="px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[9px] font-black uppercase flex items-center gap-1">
                                                                 <CheckCircle2 size={10} />
                                                                 Cliente OK
                                                             </span>
@@ -208,13 +208,13 @@ export function PhasesTab({ phases, project }: PhasesTabProps) {
                                                             {formatDate(phase.planned_start_date)} → {formatDate(phase.planned_end_date)}
                                                         </span>
                                                         {phase.actual_start_date && (
-                                                            <span className="flex items-center gap-1 text-sky-600">
+                                                            <span className="flex items-center gap-1 text-primary">
                                                                 <Play size={10} />
                                                                 Real: {formatDate(phase.actual_start_date)}
                                                             </span>
                                                         )}
                                                         {phase.actual_end_date && (
-                                                            <span className="flex items-center gap-1 text-emerald-600">
+                                                            <span className="flex items-center gap-1 text-emerald-500">
                                                                 <CheckCircle2 size={10} />
                                                                 Fin: {formatDate(phase.actual_end_date)}
                                                             </span>
@@ -232,13 +232,13 @@ export function PhasesTab({ phases, project }: PhasesTabProps) {
 
                                             {/* Bloqueado / delay */}
                                             {phase.status === 'blocked' && phase.delay_reason && (
-                                                <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 flex items-start gap-2">
-                                                    <AlertTriangle size={14} className="text-red-600 shrink-0 mt-0.5" />
+                                                <div className="rounded-xl bg-destructive/10 border border-destructive/20 px-4 py-3 flex items-start gap-2">
+                                                    <AlertTriangle size={14} className="text-destructive shrink-0 mt-0.5" />
                                                     <div>
-                                                        <p className="text-[10px] font-black text-red-700 uppercase tracking-widest">
+                                                        <p className="text-[10px] font-black text-destructive uppercase tracking-widest">
                                                             Bloqueado
                                                         </p>
-                                                        <p className="text-[11px] font-medium text-red-600 mt-0.5">
+                                                        <p className="text-[11px] font-medium text-destructive/80 mt-0.5">
                                                             {phase.delay_reason}
                                                         </p>
                                                     </div>
@@ -304,7 +304,7 @@ export function PhasesTab({ phases, project }: PhasesTabProps) {
                                                     <button
                                                         onClick={() => handleAction(phase.id, 'start')}
                                                         disabled={isLoading}
-                                                        className="flex items-center gap-1.5 px-3 py-2 bg-sky-50 hover:bg-sky-100 transition-all rounded-xl border border-sky-200 text-[9px] font-black uppercase tracking-widest text-sky-700 active:scale-95 disabled:opacity-50"
+                                                        className="flex items-center gap-1.5 px-3 py-2 bg-primary/10 hover:bg-primary/20 transition-all rounded-xl border border-primary/30 text-[9px] font-black uppercase tracking-widest text-primary active:scale-95 disabled:opacity-50"
                                                     >
                                                         <Play size={12} />
                                                         Iniciar Fase
@@ -316,7 +316,7 @@ export function PhasesTab({ phases, project }: PhasesTabProps) {
                                                         <button
                                                             onClick={() => handleAction(phase.id, 'send_to_client')}
                                                             disabled={isLoading}
-                                                            className="flex items-center gap-1.5 px-3 py-2 bg-amber-50 hover:bg-amber-100 transition-all rounded-xl border border-amber-200 text-[9px] font-black uppercase tracking-widest text-amber-700 active:scale-95 disabled:opacity-50"
+                                                            className="flex items-center gap-1.5 px-3 py-2 bg-amber-500/10 hover:bg-amber-500/20 transition-all rounded-xl border border-amber-500/30 text-[9px] font-black uppercase tracking-widest text-amber-500 active:scale-95 disabled:opacity-50"
                                                         >
                                                             <Send size={12} />
                                                             Enviar a Cliente
@@ -332,7 +332,7 @@ export function PhasesTab({ phases, project }: PhasesTabProps) {
 
                                                         <button
                                                             onClick={() => setBlockPhaseId(isBlockOpen ? null : phase.id)}
-                                                            className="flex items-center gap-1.5 px-3 py-2 bg-red-50 hover:bg-red-100 transition-all rounded-xl border border-red-200 text-[9px] font-black uppercase tracking-widest text-red-700 active:scale-95"
+                                                            className="flex items-center gap-1.5 px-3 py-2 bg-destructive/10 hover:bg-destructive/20 transition-all rounded-xl border border-destructive/30 text-[9px] font-black uppercase tracking-widest text-destructive active:scale-95"
                                                         >
                                                             <Lock size={12} />
                                                             Bloquear
@@ -344,7 +344,7 @@ export function PhasesTab({ phases, project }: PhasesTabProps) {
                                                     <button
                                                         onClick={() => handleAction(phase.id, 'approve_internal')}
                                                         disabled={isLoading}
-                                                        className="flex items-center gap-1.5 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 transition-all rounded-xl border border-emerald-200 text-[9px] font-black uppercase tracking-widest text-emerald-700 active:scale-95 disabled:opacity-50"
+                                                        className="flex items-center gap-1.5 px-3 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 transition-all rounded-xl border border-emerald-500/30 text-[9px] font-black uppercase tracking-widest text-emerald-500 active:scale-95 disabled:opacity-50"
                                                     >
                                                         <CheckCircle2 size={12} />
                                                         Aprobar Internamente
@@ -355,7 +355,7 @@ export function PhasesTab({ phases, project }: PhasesTabProps) {
                                                     <button
                                                         onClick={() => handleAction(phase.id, 'unblock')}
                                                         disabled={isLoading}
-                                                        className="flex items-center gap-1.5 px-3 py-2 bg-sky-50 hover:bg-sky-100 transition-all rounded-xl border border-sky-200 text-[9px] font-black uppercase tracking-widest text-sky-700 active:scale-95 disabled:opacity-50"
+                                                        className="flex items-center gap-1.5 px-3 py-2 bg-primary/10 hover:bg-primary/20 transition-all rounded-xl border border-primary/30 text-[9px] font-black uppercase tracking-widest text-primary active:scale-95 disabled:opacity-50"
                                                     >
                                                         <Play size={12} />
                                                         Desbloquear
@@ -366,7 +366,7 @@ export function PhasesTab({ phases, project }: PhasesTabProps) {
                                                     <button
                                                         onClick={() => handleAction(phase.id, 'complete')}
                                                         disabled={isLoading}
-                                                        className="flex items-center gap-1.5 px-3 py-2 bg-teal-50 hover:bg-teal-100 transition-all rounded-xl border border-teal-200 text-[9px] font-black uppercase tracking-widest text-teal-700 active:scale-95 disabled:opacity-50"
+                                                        className="flex items-center gap-1.5 px-3 py-2 bg-teal-500/10 hover:bg-teal-500/20 transition-all rounded-xl border border-teal-500/30 text-[9px] font-black uppercase tracking-widest text-teal-500 active:scale-95 disabled:opacity-50"
                                                     >
                                                         <CheckCircle2 size={12} />
                                                         Completar Fase
@@ -376,8 +376,8 @@ export function PhasesTab({ phases, project }: PhasesTabProps) {
 
                                             {/* Form bloquear */}
                                             {isBlockOpen && (
-                                                <div className="rounded-xl bg-red-50 border border-red-200 p-3 space-y-2 animate-in fade-in slide-in-from-top-2 duration-200">
-                                                    <p className="text-[10px] font-black text-red-700 uppercase tracking-widest">
+                                                <div className="rounded-xl bg-destructive/10 border border-destructive/20 p-3 space-y-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                                                    <p className="text-[10px] font-black text-destructive uppercase tracking-widest">
                                                         Motivo del bloqueo
                                                     </p>
                                                     <input
@@ -385,19 +385,19 @@ export function PhasesTab({ phases, project }: PhasesTabProps) {
                                                         value={delayReasonInput}
                                                         onChange={(e) => setDelayReasonInput(e.target.value)}
                                                         placeholder="Ej: Cliente demoró 5 días en feedback…"
-                                                        className="w-full rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-bold text-red-900 outline-none focus:border-red-400"
+                                                        className="w-full rounded-lg border border-destructive/30 bg-card px-3 py-2 text-xs font-bold text-foreground outline-none focus:border-destructive/50"
                                                     />
                                                     <div className="flex items-center gap-2">
                                                         <button
                                                             onClick={() => handleAction(phase.id, 'block')}
                                                             disabled={!delayReasonInput.trim() || isLoading}
-                                                            className="px-3 py-2 bg-red-600 text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-red-700 transition-colors disabled:opacity-50"
+                                                            className="px-3 py-2 bg-destructive text-destructive-foreground rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-destructive/90 transition-colors disabled:opacity-50"
                                                         >
                                                             Confirmar Bloqueo
                                                         </button>
                                                         <button
                                                             onClick={() => { setBlockPhaseId(null); setDelayReasonInput('') }}
-                                                            className="px-3 py-2 bg-white text-red-700 border border-red-200 rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-red-50 transition-colors"
+                                                            className="px-3 py-2 bg-secondary text-foreground border border-border/50 rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-accent transition-colors"
                                                         >
                                                             Cancelar
                                                         </button>

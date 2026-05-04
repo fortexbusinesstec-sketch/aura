@@ -12,11 +12,11 @@
    Los componentes no necesitan ningún cambio.
    ══════════════════════════════════════════════════════ */
 
-/* ── Importar temas adicionales aquí cuando existan ──
-   @import "../styles/themes/midnight.css";
-   @import "../styles/themes/ocean.css";
-   @import "../styles/themes/forest.css";
-   ──────────────────────────────────────────────────── */
+/* ── Temas adicionales ─────────────────────────────── */
+@import "../styles/themes/midnight.css";
+@import "../styles/themes/ocean.css";
+@import "../styles/themes/forest.css";
+/* ──────────────────────────────────────────────────── */
 
 /* ══════════════════════════════════════════════════════
    🎨  TEMA: Aura Warm  (Activo por defecto en :root)

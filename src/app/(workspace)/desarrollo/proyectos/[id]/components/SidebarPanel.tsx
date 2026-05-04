@@ -84,7 +84,7 @@ export function SidebarPanel({ project, client, leadDev, projectManager, portalT
                                 className="w-10 h-10 rounded-xl object-cover border border-border/50"
                             />
                         ) : (
-                            <div className="w-10 h-10 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-700 text-[10px] font-black">
+                            <div className="w-10 h-10 rounded-xl bg-primary/10 border border-border/50 flex items-center justify-center text-primary text-[10px] font-black">
                                 {getInitials(projectManager?.full_name || 'PM')}
                             </div>
                         )}
@@ -108,7 +108,7 @@ export function SidebarPanel({ project, client, leadDev, projectManager, portalT
 
                 <div className="space-y-3">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-700">
+                        <div className="w-10 h-10 rounded-xl bg-primary/10 border border-border/20 flex items-center justify-center text-primary">
                             <Briefcase size={18} />
                         </div>
                         <div>
@@ -179,7 +179,7 @@ export function SidebarPanel({ project, client, leadDev, projectManager, portalT
                     }}
                     className="w-full flex items-center gap-3 px-4 py-3 bg-secondary/40 hover:bg-secondary transition-all rounded-xl border border-border/40 active:scale-95 text-left"
                 >
-                    <div className="w-8 h-8 rounded-lg bg-sky-50 flex items-center justify-center text-sky-700 shrink-0">
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
                         <Calendar size={14} />
                     </div>
                     <span className="text-[10px] font-black uppercase tracking-widest text-foreground">
@@ -193,7 +193,7 @@ export function SidebarPanel({ project, client, leadDev, projectManager, portalT
                     }}
                     className="w-full flex items-center gap-3 px-4 py-3 bg-secondary/40 hover:bg-secondary transition-all rounded-xl border border-border/40 active:scale-95 text-left"
                 >
-                    <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center text-red-700 shrink-0">
+                    <div className="w-8 h-8 rounded-lg bg-destructive/10 flex items-center justify-center text-destructive shrink-0">
                         <Bug size={14} />
                     </div>
                     <span className="text-[10px] font-black uppercase tracking-widest text-foreground">
@@ -208,7 +208,7 @@ export function SidebarPanel({ project, client, leadDev, projectManager, portalT
                         rel="noopener noreferrer"
                         className="w-full flex items-center gap-3 px-4 py-3 bg-secondary/40 hover:bg-secondary transition-all rounded-xl border border-border/40 active:scale-95 text-left"
                     >
-                        <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-700 shrink-0">
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
                             <Globe size={14} />
                         </div>
                         <span className="text-[10px] font-black uppercase tracking-widest text-foreground">

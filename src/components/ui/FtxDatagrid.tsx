@@ -162,8 +162,21 @@ export function FtxDatagrid<TData>({
     const virtualRows = rowVirtualizer.getVirtualItems()
     const totalSize = rowVirtualizer.getTotalSize()
 
+    const [isMounted, setIsMounted] = useState(false)
+    React.useEffect(() => {
+        setIsMounted(true)
+    }, [])
+
+    if (!isMounted) {
+        return (
+            <div className="w-full h-48 rounded-3xl border border-border bg-card/50 animate-pulse flex items-center justify-center">
+                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/30">Inicializando Datagrid...</span>
+            </div>
+        )
+    }
+
     return (
-        <div className="flex flex-col gap-4 w-full">
+        <div className="flex flex-col gap-4 w-full animate-in fade-in duration-500">
             {/* Bulk Actions Bar */}
             {Object.keys(rowSelection).length > 0 && renderBulkActions && (
                 <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[60] animate-in slide-in-from-bottom-4 fade-in duration-300">
