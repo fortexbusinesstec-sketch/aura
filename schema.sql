@@ -299,12 +299,26 @@ CREATE TABLE project_approvals (
 -- NUEVO: Link a proyecto convertido
 ALTER TABLE opportunities ADD COLUMN IF NOT EXISTS project_converted_id UUID REFERENCES projects(id);
 
+-- NUEVO: Portal tokens y PIN para autenticación del cliente en cada oportunidad
+ALTER TABLE opportunities ADD COLUMN IF NOT EXISTS portal_token UUID DEFAULT gen_random_uuid();
+ALTER TABLE opportunities ADD COLUMN IF NOT EXISTS pin_code VARCHAR(10);
+
+-- Crear índice único para búsqueda rápida por portal_token
+CREATE UNIQUE INDEX IF NOT EXISTS idx_opportunities_portal_token ON opportunities(portal_token);
+
 -- --- MIGRACIONES: projects ---
 ALTER TABLE projects ADD COLUMN IF NOT EXISTS portal_view_mode VARCHAR(20) DEFAULT 'proposal';
 ALTER TABLE projects ADD COLUMN IF NOT EXISTS contract_amount DECIMAL(12,2);
 ALTER TABLE projects ADD COLUMN IF NOT EXISTS amount_paid DECIMAL(12,2) DEFAULT 0;
 ALTER TABLE projects ADD COLUMN IF NOT EXISTS amount_pending DECIMAL(12,2);
 ALTER TABLE projects ADD COLUMN IF NOT EXISTS staging_url VARCHAR(255);
+
+-- NUEVO: Portal tokens y PIN independientes para cada proyecto (diferentes a la oportunidad origen)
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS portal_token UUID DEFAULT gen_random_uuid();
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS pin_code VARCHAR(10);
+
+-- Crear índice único para búsqueda rápida por portal_token
+CREATE UNIQUE INDEX IF NOT EXISTS idx_projects_portal_token ON projects(portal_token);
 
 -- --- NUEVA TABLA: project_services ---
 CREATE TABLE IF NOT EXISTS project_services (
@@ -381,3 +395,95 @@ CREATE POLICY "Usuarios autenticados pueden ver aprobaciones" ON project_approva
 CREATE POLICY "Usuarios autenticados pueden crear aprobaciones" ON project_approvals FOR INSERT TO authenticated WITH CHECK (true);
 CREATE POLICY "Usuarios autenticados pueden actualizar aprobaciones" ON project_approvals FOR UPDATE TO authenticated USING (true);
 CREATE POLICY "Usuarios autenticados pueden eliminar aprobaciones" ON project_approvals FOR DELETE TO authenticated USING (true);
+
+-- --- TEMAS DEL SISTEMA ---
+CREATE TABLE IF NOT EXISTS themes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    
+    -- Identificación
+    name VARCHAR(50) NOT NULL,        -- Ej: 'Morning Light', 'Midnight Focus'
+    slug VARCHAR(50) UNIQUE NOT NULL, -- Ej: 'morning', 'midnight', 'ocean'
+    description VARCHAR(255),         -- Ej: 'Alto contraste para trabajo diurno'
+    
+    -- Todos los valores HSL en un solo JSONB (coincide con tu CSS)
+    hsl_values JSONB NOT NULL DEFAULT '{
+        "background": "50 40% 94%",
+        "foreground": "40 25% 14%",
+        "card": "0 0% 100%",
+        "card-foreground": "40 25% 14%",
+        "popover": "0 0% 100%",
+        "popover-foreground": "40 25% 14%",
+        "primary": "39 100% 87%",
+        "primary-foreground": "39 28% 22%",
+        "secondary": "48 30% 88%",
+        "secondary-foreground": "40 25% 14%",
+        "muted": "48 25% 86%",
+        "muted-foreground": "40 11% 43%",
+        "accent": "48 40% 89%",
+        "accent-foreground": "40 25% 14%",
+        "destructive": "6 62% 66%",
+        "destructive-foreground": "0 0% 100%",
+        "success": "113 23% 71%",
+        "success-foreground": "113 40% 20%",
+        "warning": "38 82% 70%",
+        "warning-foreground": "38 50% 20%",
+        "border": "45 18% 85%",
+        "input": "45 18% 85%",
+        "ring": "39 100% 87%",
+        "radius": "0.75rem"
+    }',
+    
+    -- Control
+    is_default BOOLEAN DEFAULT false, -- El tema que se aplica si no hay preferencia
+    is_active BOOLEAN DEFAULT true,
+    
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- RLS para Themes
+ALTER TABLE themes ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Auth ver temas del sistema" ON themes FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Auth crear temas" ON themes FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Auth actualizar temas" ON themes FOR UPDATE TO authenticated USING (true);
+
+-- --- TEMAS PERSONALIZADOS POR CLIENTE ---
+CREATE TABLE IF NOT EXISTS client_themes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    
+    -- A quién pertenece el tema
+    client_id UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+    
+    -- Puede heredar de un tema base del catálogo (opcional)
+    base_theme_id UUID REFERENCES themes(id),
+    
+    -- Override: solo los valores HSL que cambian respecto al base
+    custom_hsl_overrides JSONB DEFAULT '{}',
+    
+    -- Assets visuales del portal
+    logo_url TEXT,                    -- Logo del cliente en el header del portal
+    favicon_url TEXT,               -- Favicon del cliente
+    
+    -- Tipografía
+    font_heading VARCHAR(50) DEFAULT 'Inter',
+    font_body VARCHAR(50) DEFAULT 'Inter',
+    
+    -- Estado
+    is_active BOOLEAN DEFAULT true,
+    
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
+    
+    -- Un cliente solo tiene un tema activo
+    UNIQUE(client_id)
+);
+
+-- RLS para Client Themes
+ALTER TABLE client_themes ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Auth ver temas de clientes" ON client_themes FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Auth crear temas de clientes" ON client_themes FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Auth actualizar temas de clientes" ON client_themes FOR UPDATE TO authenticated USING (true);
+
+
+-- --- MIGRACIONES: profiles ---
+-- Agregar preferencia de tema del usuario (referencia a themes.slug)
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS preferred_theme_slug VARCHAR(50) DEFAULT 'aura-warm';

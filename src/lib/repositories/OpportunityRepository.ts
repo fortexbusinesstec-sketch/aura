@@ -1,6 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { Opportunity, NewOpportunity } from '@/types'
 import { PostgrestError } from '@supabase/supabase-js'
+import { generatePinCode } from '@/lib/portalTokens'
 
 export const OpportunityRepository = {
     async getAll(): Promise<Opportunity[]> {
@@ -42,9 +43,16 @@ export const OpportunityRepository = {
 
     async create(opportunity: NewOpportunity): Promise<{ data: Opportunity | null; error: PostgrestError | null }> {
         const supabase = await createClient()
+
+        // Generar automáticamente portal_token y pin_code si no se proporcionan
+        const enrichedOpportunity = {
+            ...opportunity,
+            pin_code: opportunity.pin_code || generatePinCode(),
+        }
+
         const { data, error } = await supabase
             .from('opportunities')
-            .insert([opportunity])
+            .insert([enrichedOpportunity])
             .select()
             .single()
 

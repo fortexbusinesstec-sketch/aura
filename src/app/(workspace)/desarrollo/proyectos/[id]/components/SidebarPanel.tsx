@@ -159,63 +159,72 @@ export function SidebarPanel({ project, client, leadDev, projectManager, portalT
                     Acciones Rápidas
                 </p>
 
-                <button
-                    onClick={() => {
-                        /* TODO: Implementar envío de actualización */
-                    }}
-                    className="w-full flex items-center gap-3 px-4 py-3 bg-secondary/40 hover:bg-secondary transition-all rounded-xl border border-border/40 active:scale-95 text-left"
-                >
-                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
-                        <Send size={14} />
-                    </div>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-foreground">
-                        Enviar actualización
-                    </span>
-                </button>
+                <div className="space-y-3">
+                    {portalToken && (
+                        <div className="pt-2 border-t border-border/40 mb-3">
+                            <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-2">
+                                Acceso al Portal
+                            </p>
+                            <div className="bg-secondary/30 rounded-xl p-3 border border-border/30 space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-[10px] font-bold text-muted-foreground uppercase">PIN</span>
+                                    <span className="text-xs font-black text-foreground tracking-widest">{project.pin_code || '—'}</span>
+                                </div>
+                                <a
+                                    href={`/p/${portalToken}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-primary/10 hover:bg-primary/20 transition-all rounded-lg text-[9px] font-black uppercase tracking-widest text-primary border border-primary/20"
+                                >
+                                    <Globe size={12} />
+                                    Abrir Portal
+                                </a>
+                            </div>
+                        </div>
+                    )}
 
-                <button
-                    onClick={() => {
-                        /* TODO: Implementar agendamiento */
-                    }}
-                    className="w-full flex items-center gap-3 px-4 py-3 bg-secondary/40 hover:bg-secondary transition-all rounded-xl border border-border/40 active:scale-95 text-left"
-                >
-                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
-                        <Calendar size={14} />
-                    </div>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-foreground">
-                        Agendar reunión
-                    </span>
-                </button>
-
-                <button
-                    onClick={() => {
-                        /* TODO: Implementar reporte de bug */
-                    }}
-                    className="w-full flex items-center gap-3 px-4 py-3 bg-secondary/40 hover:bg-secondary transition-all rounded-xl border border-border/40 active:scale-95 text-left"
-                >
-                    <div className="w-8 h-8 rounded-lg bg-destructive/10 flex items-center justify-center text-destructive shrink-0">
-                        <Bug size={14} />
-                    </div>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-foreground">
-                        Reportar bug interno
-                    </span>
-                </button>
-
-                {portalToken && (
-                    <a
-                        href={`/p/${portalToken}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                    <button
+                        onClick={() => {
+                            /* TODO: Implementar envío de actualización */
+                        }}
                         className="w-full flex items-center gap-3 px-4 py-3 bg-secondary/40 hover:bg-secondary transition-all rounded-xl border border-border/40 active:scale-95 text-left"
                     >
                         <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
-                            <Globe size={14} />
+                            <Send size={14} />
                         </div>
                         <span className="text-[10px] font-black uppercase tracking-widest text-foreground">
-                            🌐 Ver Portal del Cliente
+                            Enviar actualización
                         </span>
-                    </a>
-                )}
+                    </button>
+
+                    <button
+                        onClick={() => {
+                            /* TODO: Implementar agendamiento */
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-3 bg-secondary/40 hover:bg-secondary transition-all rounded-xl border border-border/40 active:scale-95 text-left"
+                    >
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                            <Calendar size={14} />
+                        </div>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-foreground">
+                            Agendar reunión
+                        </span>
+                    </button>
+
+                    <button
+                        onClick={() => {
+                            /* TODO: Implementar reporte de bug */
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-3 bg-secondary/40 hover:bg-secondary transition-all rounded-xl border border-border/40 active:scale-95 text-left"
+                    >
+                        <div className="w-8 h-8 rounded-lg bg-destructive/10 flex items-center justify-center text-destructive shrink-0">
+                            <Bug size={14} />
+                        </div>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-foreground">
+                            Reportar bug interno
+                        </span>
+                    </button>
+                </div>
             </div>
         </div>
     )

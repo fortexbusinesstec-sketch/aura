@@ -51,24 +51,39 @@ export function PinScreen({ portalToken, onSuccess }: PinScreenProps) {
         setIsSubmitting(true)
         setError('')
 
-        const { data: client, error: clientError } = await supabase
-            .from('clients')
+        // ═══════════════════════════════════════════════════════════════
+        // Validación dual: primero opportunities, luego projects
+        // ═══════════════════════════════════════════════════════════════
+
+        // Check in opportunities
+        const { data: opp } = await supabase
+            .from('opportunities')
             .select('id, pin_code')
             .eq('portal_token', portalToken)
-            .single()
+            .maybeSingle()
 
-        if (clientError || !client) {
-            setError('Portal no encontrado. Contacta a tu asesor.')
-            setIsSubmitting(false)
+        if (opp && opp.pin_code === enteredPin) {
+            handleLoginSuccess(enteredPin)
             return
         }
 
-        if (client.pin_code !== enteredPin) {
-            setError('PIN incorrecto. Contacta a tu asesor.')
-            setIsSubmitting(false)
+        // Check in projects
+        const { data: proj } = await supabase
+            .from('projects')
+            .select('id, pin_code')
+            .eq('portal_token', portalToken)
+            .maybeSingle()
+
+        if (proj && proj.pin_code === enteredPin) {
+            handleLoginSuccess(enteredPin)
             return
         }
 
+        setError('PIN incorrecto o portal no encontrado.')
+        setIsSubmitting(false)
+    }
+
+    const handleLoginSuccess = (enteredPin: string) => {
         // Save session to localStorage
         localStorage.setItem(`aura_portal_${portalToken}`, JSON.stringify({
             pin: enteredPin,
@@ -81,15 +96,15 @@ export function PinScreen({ portalToken, onSuccess }: PinScreenProps) {
     }
 
     return (
-        <div className="min-h-screen bg-white flex items-center justify-center px-4">
+        <div className="min-h-screen bg-background flex items-center justify-center px-4">
             <div className="w-full max-w-sm space-y-8">
                 {/* Logo */}
                 <div className="text-center space-y-3">
-                    <div className="w-16 h-16 bg-[#1E3A5F] rounded-2xl flex items-center justify-center mx-auto">
-                        <span className="text-white font-black text-xl">A</span>
+                    <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto">
+                        <span className="text-primary-foreground font-black text-xl">A</span>
                     </div>
                     <div>
-                        <h1 className="text-xl font-black text-slate-900 tracking-tight">Portal de Propuestas</h1>
+                        <h1 className="text-xl font-black text-foreground tracking-tight">Portal de Cliente</h1>
                         <p className="text-sm text-muted-foreground mt-1">Aura OS • Fortex Digital</p>
                     </div>
                 </div>
@@ -111,17 +126,17 @@ export function PinScreen({ portalToken, onSuccess }: PinScreenProps) {
                                 value={pin[i]}
                                 onChange={(e) => handleChange(i, e.target.value)}
                                 onKeyDown={(e) => handleKeyDown(i, e)}
-                                className={`w-12 h-14 rounded-xl border-2 text-center text-xl font-black text-slate-900 outline-none transition-all ${
+                                className={`w-12 h-14 rounded-xl border-2 text-center text-xl font-black text-foreground outline-none transition-all bg-card ${
                                     error
-                                        ? 'border-red-300 bg-red-50 focus:border-red-500 focus:ring-4 focus:ring-red-100'
-                                        : 'border-slate-200 bg-white focus:border-[#1E3A5F] focus:ring-4 focus:ring-[#1E3A5F]/10'
+                                        ? 'border-destructive bg-destructive/5 focus:border-destructive focus:ring-4 focus:ring-destructive/10'
+                                        : 'border-border focus:border-primary focus:ring-4 focus:ring-primary/10'
                                 }`}
                             />
                         ))}
                     </div>
 
                     {error && (
-                        <div className="flex items-center gap-2 justify-center text-red-600 text-xs font-bold">
+                        <div className="flex items-center gap-2 justify-center text-destructive text-xs font-bold">
                             <Shield size={14} />
                             {error}
                         </div>
@@ -130,7 +145,7 @@ export function PinScreen({ portalToken, onSuccess }: PinScreenProps) {
                     <button
                         onClick={handleSubmit}
                         disabled={isSubmitting}
-                        className="w-full flex items-center justify-center gap-2 rounded-2xl bg-[#1E3A5F] px-6 py-4 text-xs font-black uppercase tracking-widest text-white hover:bg-[#152d4a] disabled:opacity-50 transition-all active:scale-[0.98]"
+                        className="w-full flex items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-4 text-xs font-black uppercase tracking-widest text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-all active:scale-[0.98]"
                     >
                         {isSubmitting ? (
                             <>
@@ -138,7 +153,7 @@ export function PinScreen({ portalToken, onSuccess }: PinScreenProps) {
                                 Verificando...
                             </>
                         ) : (
-                            'Acceder a mi Propuesta'
+                            'Acceder a mi Portal'
                         )}
                     </button>
                 </div>

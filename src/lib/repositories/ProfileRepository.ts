@@ -5,6 +5,7 @@ export interface Profile {
     full_name: string
     role: 'architect' | 'admin'
     avatar_url: string | null
+    preferred_theme_slug?: string | null
 }
 
 export const ProfileRepository = {

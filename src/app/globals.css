@@ -37,10 +37,10 @@
   --popover-foreground: 40 25% 14%;
 
   /* ── 3. ACCIÓN PRIMARIA Y BOTONES ────────────────── */
-  /* primary: #FFE8BE — dorado/amarillo pastel, CTAs y acentos */
-  --primary: 39 100% 87%;
-  /* primary-foreground: #473E28 — texto oscuro legible sobre dorado */
-  --primary-foreground: 39 28% 22%;
+  /* primary: #B8860B — Dark Goldenrod para legibilidad global */
+  --primary: 43 89% 38%;
+  /* primary-foreground: #FFFFFF — blanco sobre dorado oscuro */
+  --primary-foreground: 0 0% 100%;
 
   /* secondary: #EAE6D7 — crema más oscuro para acciones secundarias */
   --secondary: 48 30% 88%;
@@ -66,17 +66,17 @@
   --success: 113 23% 71%;
   --success-foreground: 113 40% 20%;
 
-  /* warning: #F2C272 — naranja ocre "Pendiente / Alerta" */
-  --warning: 38 82% 70%;
-  --warning-foreground: 38 50% 20%;
+  /* warning: #C28E34 — ocre oscuro para legibilidad */
+  --warning: 38 58% 48%;
+  --warning-foreground: 0 0% 100%;
 
   /* ── 7. ESTRUCTURA: BORDES Y FOCOS ──────────────── */
   /* border: #E0DCD0 — separadores cálidos discretos */
   --border: 45 18% 85%;
   /* input: borde específico para inputs */
   --input: 45 18% 85%;
-  /* ring: halo de foco, usa el primary */
-  --ring: 39 100% 87%;
+  /* ring: halo de foco, usa el primary ocre */
+  --ring: 46 65% 52%;
 
   /* ── 8. RADIO ESTÁNDAR ───────────────────────────── */
   --radius: 0.75rem;

@@ -1,9 +1,12 @@
 'use client'
 
-import { applyTheme, saveThemeCookie, updateCustomColor, getCustomColorsFromCookie, importThemeFromCSS, getImportedThemes, deleteImportedTheme, THEMES } from '@/components/providers/ThemeProvider'
-import { useState } from 'react'
-import { Palette, Check, Paintbrush, Info, Settings } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import { applyTheme, saveThemeCookie, updateCustomColor, getCustomColorsFromCookie } from '@/components/providers/ThemeProvider'
+import { Palette, Check, Paintbrush, Info, Settings, Loader2, Copy, Pencil } from 'lucide-react'
 import { toast } from 'sonner'
+import { createClient } from '@/utils/supabase/client'
+import { Theme } from '@/types'
+import { Modal } from '@/components/ui/Modal'
 
 /**
  * Convierte Hex (#ffffff) a HSL string compatible con Aura CSS Variables
@@ -65,65 +68,205 @@ function hslToHex(hsl: string): string {
 }
 
 export default function ConfiguracionPage() {
-    const [activeTheme, setActiveTheme] = useState<string>(() => {
-        if (typeof document === 'undefined') return 'warm'
-        const match = document.cookie.match(/aura-theme=([^;]+)/)
-        return match?.[1] || 'warm'
-    })
-
+    const supabase = createClient()
+    const [themes, setThemes] = useState<Theme[]>([])
+    const [loading, setLoading] = useState(true)
+    const [activeTheme, setActiveTheme] = useState<string>('')
     const [customColors, setCustomColors] = useState<Record<string, string>>(() => getCustomColorsFromCookie())
-    const [importedThemes, setImportedThemes] = useState<any[]>(() => getImportedThemes())
-    const [isImporting, setIsImporting] = useState(false)
-    const [importName, setImportName] = useState('')
-    const [importCss, setImportCss] = useState('')
+    
+    // Estados para Importación
+    const [isImportModalOpen, setIsImportModalOpen] = useState(false)
+    const [cssInput, setCssInput] = useState('')
+    const [isProcessing, setIsProcessing] = useState(false)
 
-    const handleThemeSelect = (themeId: string) => {
-        setActiveTheme(themeId)
-        applyTheme(themeId)
-        saveThemeCookie(themeId as any)
+    // Estados para Edición
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+    const [editingTheme, setEditingTheme] = useState<Theme | null>(null)
+    const [editName, setEditName] = useState('')
+    const [editHslValues, setEditHslValues] = useState<Record<string, string>>({})
+    const loadThemes = useCallback(async () => {
+        setLoading(true)
+        const { data, error } = await supabase
+            .from('themes')
+            .select('*')
+            .eq('is_active', true)
+            .order('name')
+
+        if (error) {
+            toast.error('Error cargando temas')
+        } else {
+            setThemes(data || [])
+            
+            // Determinar tema activo actual (desde cookie o default)
+            const match = document.cookie.match(/aura-theme=([^;]+)/)
+            const currentSlug = match?.[1]
+            if (currentSlug) {
+                setActiveTheme(currentSlug)
+            } else {
+                const def = data?.find(t => t.is_default)
+                if (def) setActiveTheme(def.slug)
+            }
+        }
+        setLoading(false)
+    }, [supabase])
+
+    useEffect(() => {
+        loadThemes()
+    }, [loadThemes])
+
+    const handleThemeSelect = async (theme: Theme) => {
+        setActiveTheme(theme.slug)
+        saveThemeCookie(theme.slug as any)
+        
+        // Aplicar al instante inyectando HSL al DOM
+        const html = document.documentElement
+        Object.entries(theme.hsl_values).forEach(([k, v]) => {
+            html.style.setProperty(`--${k}`, String(v))
+        })
+
+        // Guardar preferencia en el perfil del usuario si está logueado
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+            await supabase
+                .from('profiles')
+                .update({ preferred_theme_slug: theme.slug })
+                .eq('id', user.id)
+        }
+
+        toast.success(`Tema ${theme.name} aplicado`)
+    }
+
+    const handleImportCss = async () => {
+        if (!cssInput.trim()) return
+
+        setIsProcessing(true)
+        try {
+            // 1. Extraer nombre del tema (de comentario o clase)
+            let themeName = 'Tema Importado'
+            const commentMatch = cssInput.match(/\/\*\*?\s*(?:AURA OS\s*—\s*)?Tema\s*["']([^"']+)["']\s*\*?\//i)
+            const classMatch = cssInput.match(/\.theme-([a-z-]+)/i)
+            if (commentMatch) themeName = commentMatch[1]
+            else if (classMatch) themeName = classMatch[1].charAt(0).toUpperCase() + classMatch[1].slice(1)
+
+            // 2. Parsear variables HSL
+            const hslValues: Record<string, string> = {}
+            const vars = [
+                'background', 'foreground', 'card', 'card-foreground', 'popover', 'popover-foreground',
+                'primary', 'primary-foreground', 'secondary', 'secondary-foreground', 'muted', 'muted-foreground',
+                'accent', 'accent-foreground', 'destructive', 'destructive-foreground', 'success', 'success-foreground',
+                'warning', 'warning-foreground', 'border', 'input', 'ring', 'radius'
+            ]
+
+            vars.forEach(v => {
+                // Regex flexible para: --variable: 220 20% 10%; o --variable: hsl(220 20% 10%);
+                const regex = new RegExp(`--${v}:\\s*(?:hsl\\()?([^;)]+)(?:\\))?;`, 'i')
+                const match = cssInput.match(regex)
+                if (match) {
+                    hslValues[v] = match[1].trim()
+                }
+            })
+
+            if (Object.keys(hslValues).length === 0) {
+                toast.error('No se detectaron variables CSS válidas')
+                return
+            }
+
+            // 3. Guardar en Supabase
+            const slug = themeName.toLowerCase().replace(/\s+/g, '-') + '-' + Math.random().toString(36).substring(2, 5)
+            
+            const { data: newTheme, error } = await supabase
+                .from('themes')
+                .insert({
+                    name: themeName,
+                    slug,
+                    description: 'Tema importado desde configuración.',
+                    hsl_values: hslValues,
+                    is_active: true,
+                    is_default: false
+                })
+                .select()
+                .single()
+
+            if (error) throw error
+
+            toast.success(`Tema "${themeName}" guardado en Supabase`)
+            setCssInput('')
+            setIsImportModalOpen(false)
+            loadThemes() // Recargar galería
+            
+            if (newTheme) handleThemeSelect(newTheme)
+        } catch (err: any) {
+            console.error('Error importando:', err)
+            toast.error('Error al guardar tema: ' + err.message)
+        } finally {
+            setIsProcessing(false)
+        }
     }
 
     const handleColorChange = (key: string, hex: string) => {
         const hsl = hexToHsl(hex)
-        setCustomColors(prev => ({ ...prev, [key]: hsl }))
+        setCustomColors((prev: Record<string, string>) => ({ ...prev, [key]: hsl }))
         updateCustomColor(key, hsl)
     }
 
-    const handleImport = () => {
-        if (!importName || !importCss) {
-            toast.error('Nombre y CSS son obligatorios')
-            return
-        }
-        const newTheme = importThemeFromCSS(importName, importCss)
-        if (newTheme) {
-            setImportedThemes(getImportedThemes())
-            setIsImporting(false)
-            setImportName('')
-            setImportCss('')
-            toast.success('Tema importado correctamente')
-        } else {
-            toast.error('No se encontraron variables válidas (--nombre: valor;)')
+    const handleSaveEdit = async () => {
+        if (!editingTheme || !editName.trim()) return
+
+        setIsProcessing(true)
+        try {
+            const { error } = await supabase
+                .from('themes')
+                .update({
+                    name: editName,
+                    hsl_values: editHslValues
+                })
+                .eq('id', editingTheme.id)
+
+            if (error) throw error
+
+            toast.success('Tema actualizado correctamente')
+            setIsEditModalOpen(false)
+            loadThemes()
+            
+            // Si el tema editado es el activo, reaplicar colores
+            if (activeTheme === editingTheme.slug) {
+                const html = document.documentElement
+                Object.entries(editHslValues).forEach(([k, v]) => {
+                    html.style.setProperty(`--${k}`, String(v))
+                })
+            }
+        } catch (err: any) {
+            toast.error('Error al actualizar: ' + err.message)
+        } finally {
+            setIsProcessing(false)
         }
     }
 
-    const handleDelete = (id: string, e: React.MouseEvent) => {
+    const openEditModal = (theme: Theme, e: React.MouseEvent) => {
         e.stopPropagation()
-        deleteImportedTheme(id)
-        setImportedThemes(getImportedThemes())
-        if (activeTheme === id) handleThemeSelect('warm')
-        toast.info('Tema eliminado')
+        setEditingTheme(theme)
+        setEditName(theme.name)
+        setEditHslValues(theme.hsl_values)
+        setIsEditModalOpen(true)
     }
 
-    const EDITABLE_COLORS = [
+    const handleEditColorChange = (key: string, hex: string) => {
+        const hsl = hexToHsl(hex)
+        setEditHslValues(prev => ({ ...prev, [key]: hsl }))
+    }
+
+    const EDITABLE_VARS = [
+        { key: 'primary', label: 'Principal' },
         { key: 'background', label: 'Fondo' },
         { key: 'foreground', label: 'Texto' },
-        { key: 'primary', label: 'Principal' },
         { key: 'card', label: 'Tarjetas' },
-        { key: 'border', label: 'Bordes' },
         { key: 'accent', label: 'Acentos' },
+        { key: 'border', label: 'Bordes' },
+        { key: 'muted', label: 'Muted' },
+        { key: 'success', label: 'Éxito' },
+        { key: 'warning', label: 'Advertencia' },
+        { key: 'destructive', label: 'Error' },
     ]
-
-    const allDisplayThemes = [...THEMES, ...importedThemes]
 
     return (
         <div className="max-w-4xl mx-auto space-y-10 py-2">
@@ -134,7 +277,7 @@ export default function ConfiguracionPage() {
                         Configuración
                     </h1>
                     <button 
-                        onClick={() => setIsImporting(!isImporting)}
+                        onClick={() => setIsImportModalOpen(true)}
                         className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold transition-all hover:scale-105 active:scale-95"
                     >
                         <Settings size={14} />
@@ -146,42 +289,116 @@ export default function ConfiguracionPage() {
                 </p>
             </div>
 
-            {/* ── Modal / Panel de Importación ── */}
-            {isImporting && (
-                <section className="rounded-2xl border-2 border-primary/30 bg-primary/5 p-6 shadow-xl animate-in zoom-in-95 duration-300 space-y-4">
-                    <h3 className="text-sm font-bold text-foreground">Importador de Temas Inteligente</h3>
-                    <div className="space-y-3">
-                        <input 
-                            type="text" 
-                            placeholder="Nombre del tema (ej: Cyberpunk)"
-                            value={importName}
-                            onChange={(e) => setImportName(e.target.value)}
-                            className="w-full px-4 py-2 rounded-lg border border-border bg-background text-sm focus:ring-2 focus:ring-primary outline-none"
-                        />
-                        <textarea 
-                            placeholder="Pega aquí el código CSS (ej: --background: 220 20% 10%; ...)"
-                            value={importCss}
-                            onChange={(e) => setImportCss(e.target.value)}
-                            rows={6}
-                            className="w-full px-4 py-2 rounded-lg border border-border bg-background text-xs font-mono focus:ring-2 focus:ring-primary outline-none"
-                        />
-                        <div className="flex gap-2">
-                            <button 
-                                onClick={handleImport}
-                                className="flex-1 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90"
+            {/* Modal de Importación */}
+            <Modal
+                isOpen={isImportModalOpen}
+                onClose={() => setIsImportModalOpen(false)}
+                title="Importar Tema a Supabase"
+                maxWidth="max-w-xl"
+            >
+                <div className="space-y-4">
+                    <div className="bg-secondary/50 rounded-xl p-4 border border-border/50 space-y-3">
+                        <div className="flex items-center justify-between">
+                            <p className="text-[10px] font-black uppercase tracking-widest text-primary">Plantilla Maestra</p>
+                            <button
+                                onClick={() => {
+                                    const template = `--background: 0 0% 100%;&#10;--foreground: 0 0% 0%;&#10;--primary: 220 100% 50%;&#10;--primary-foreground: 0 0% 100%;&#10;--card: 0 0% 100%;&#10;--card-foreground: 0 0% 0%;&#10;--popover: 0 0% 100%;&#10;--popover-foreground: 0 0% 0%;&#10;--secondary: 220 10% 95%;&#10;--secondary-foreground: 220 10% 10%;&#10;--muted: 220 10% 95%;&#10;--muted-foreground: 220 10% 40%;&#10;--accent: 220 10% 95%;&#10;--accent-foreground: 220 10% 10%;&#10;--destructive: 0 100% 50%;&#10;--destructive-foreground: 0 0% 100%;&#10;--border: 220 10% 90%;&#10;--input: 220 10% 90%;&#10;--ring: 220 100% 50%;&#10;--radius: 0.75rem;`
+                                    navigator.clipboard.writeText(template.replace(/&#10;/g, '\n'))
+                                    toast.success('Plantilla copiada')
+                                }}
+                                className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors"
                             >
-                                Guardar e Importar
-                            </button>
-                            <button 
-                                onClick={() => setIsImporting(false)}
-                                className="px-4 py-2 rounded-lg bg-muted text-foreground text-xs font-bold"
-                            >
-                                Cancelar
+                                <Copy size={10} /> Copiar Plantilla
                             </button>
                         </div>
+                        <pre className="text-[8px] font-mono font-bold text-muted-foreground leading-tight max-h-[100px] overflow-y-auto">
+{`--background: ...; --foreground: ...;
+--primary: ...; --primary-foreground: ...;
+--card: ...; --card-foreground: ...;
+--accent: ...; --accent-foreground: ...;
+--muted: ...; --muted-foreground: ...;
+--success: ...; --warning: ...;
+--destructive: ...; --border: ...;
+--radius: 0.75rem;`}
+                        </pre>
                     </div>
-                </section>
-            )}
+
+                    <textarea
+                        value={cssInput}
+                        onChange={e => setCssInput(e.target.value)}
+                        placeholder="Pega aquí tu CSS...&#10;/* Tema 'Nombre' */&#10;--primary: 220 100% 50%;"
+                        rows={6}
+                        className="w-full px-4 py-3 rounded-xl border border-border bg-background text-[11px] font-mono font-bold text-foreground focus:ring-2 focus:ring-primary outline-none transition-all resize-none"
+                    />
+                    
+                    <button
+                        onClick={handleImportCss}
+                        disabled={isProcessing}
+                        className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-primary text-primary-foreground text-xs font-black uppercase tracking-wider hover:bg-primary/90 transition-all disabled:opacity-50"
+                    >
+                        {isProcessing ? <Loader2 className="animate-spin" size={14} /> : 'Guardar en Supabase'}
+                    </button>
+                </div>
+            </Modal>
+
+            {/* Modal de Edición */}
+            <Modal
+                isOpen={isEditModalOpen}
+                onClose={() => setIsEditModalOpen(false)}
+                title={`Editar Tema: ${editingTheme?.name}`}
+                maxWidth="max-w-2xl"
+            >
+                <div className="space-y-6">
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground ml-1">
+                            Nombre del Tema
+                        </label>
+                        <input 
+                            type="text"
+                            value={editName}
+                            onChange={e => setEditName(e.target.value)}
+                            className="w-full px-4 py-3 rounded-xl border border-border bg-background text-sm font-bold focus:ring-2 focus:ring-primary outline-none transition-all"
+                        />
+                    </div>
+
+                    <div className="space-y-4">
+                        <p className="text-[10px] font-black uppercase tracking-wider text-primary ml-1">Paleta de Colores</p>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                            {EDITABLE_VARS.map(({ key, label }) => {
+                                const currentHsl = editHslValues[key] || '0 0% 100%'
+                                const currentHex = hslToHex(currentHsl)
+
+                                return (
+                                    <div key={key} className="space-y-1.5">
+                                        <label className="text-[9px] font-bold text-muted-foreground ml-1">
+                                            {label}
+                                        </label>
+                                        <div className="flex items-center gap-2 p-2 rounded-lg border border-border bg-secondary/30">
+                                            <input
+                                                type="color"
+                                                value={currentHex}
+                                                onChange={(e) => handleEditColorChange(key, e.target.value)}
+                                                className="h-6 w-6 cursor-pointer rounded border-0 bg-transparent p-0"
+                                            />
+                                            <span className="text-[9px] font-mono font-bold text-foreground opacity-60">
+                                                {currentHex.toUpperCase()}
+                                            </span>
+                                        </div>
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    </div>
+
+                    <button
+                        onClick={handleSaveEdit}
+                        disabled={isProcessing}
+                        className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-primary text-primary-foreground text-xs font-black uppercase tracking-wider hover:bg-primary/90 transition-all disabled:opacity-50"
+                    >
+                        {isProcessing ? <Loader2 className="animate-spin" size={14} /> : 'Guardar Cambios'}
+                    </button>
+                </div>
+            </Modal>
 
             <section className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-5">
                 <div className="flex items-center gap-2">
@@ -191,104 +408,87 @@ export default function ConfiguracionPage() {
                     </h2>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {allDisplayThemes.map((theme) => {
-                        const isActive = activeTheme === theme.id
-                        const isImported = theme.id.toString().startsWith('imported-')
+                {loading ? (
+                    <div className="flex flex-col items-center justify-center py-12 space-y-3">
+                        <Loader2 className="animate-spin text-primary" size={24} />
+                        <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider">Cargando Galería...</p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {themes.map((theme: Theme) => {
+                            const isActive = activeTheme === theme.slug
+                            
+                            // Colores para el preview (background, primary, card)
+                            const previewColors = [
+                                theme.hsl_values.background,
+                                theme.hsl_values.primary,
+                                theme.hsl_values.card
+                            ].filter(Boolean)
 
-                        return (
-                            <button
-                                key={theme.id}
-                                onClick={() => handleThemeSelect(theme.id)}
-                                className={`
-                                    relative flex items-start gap-4 rounded-xl border p-4 text-left
-                                    transition-all duration-200 hover:shadow-md
-                                    ${isActive
-                                        ? 'border-primary bg-primary/10 shadow-sm ring-2 ring-primary/30'
-                                        : 'border-border bg-background hover:border-primary/40 hover:bg-secondary'
-                                    }
-                                `}
-                            >
-                                <div className="flex shrink-0 flex-col gap-1 pt-0.5">
-                                    {theme.preview.map((color: string, i: number) => (
-                                        <div
-                                            key={i}
-                                            className="h-4 w-4 rounded-full border border-black/10 shadow-inner"
-                                            style={{ backgroundColor: color }}
-                                        />
-                                    ))}
-                                </div>
-                                <div className="flex-1 min-w-0 pr-6">
-                                    <p className="text-sm font-bold text-foreground leading-tight truncate">
-                                        {theme.label}
-                                    </p>
-                                    <p className="mt-1 text-[10px] text-muted-foreground leading-relaxed line-clamp-2">
-                                        {theme.description}
-                                    </p>
-                                </div>
-                                
-                                {isImported && (
-                                    <button 
-                                        onClick={(e) => handleDelete(theme.id, e)}
-                                        className="absolute bottom-2 right-2 p-1 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                                    >
-                                        <Check size={14} className="rotate-45" />
-                                    </button>
-                                )}
-
-                                {isActive && (
-                                    <div className="absolute top-3 right-3 h-5 w-5 rounded-full bg-primary flex items-center justify-center">
-                                        <Check size={11} className="text-primary-foreground" strokeWidth={3} />
-                                    </div>
-                                )}
-                            </button>
-                        )
-                    })}
-                </div>
-
-                {/* ── Editor Dinámico (Solo para Custom) ── */}
-                {activeTheme === 'custom' && (
-                    <div className="mt-8 pt-8 border-t border-border animate-in fade-in slide-in-from-top-4 duration-500">
-                        <div className="flex items-center justify-between mb-6">
-                            <div>
-                                <h3 className="text-sm font-bold text-foreground">Editor de Colores</h3>
-                                <p className="text-xs text-muted-foreground">Ajusta cada variable en tiempo real.</p>
-                            </div>
-                            <Paintbrush size={20} className="text-primary" />
-                        </div>
-
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
-                            {EDITABLE_COLORS.map(({ key, label }) => {
-                                const currentHsl = customColors[key] || '0 0% 100%'
-                                const currentHex = hslToHex(currentHsl)
-
-                                return (
-                                    <div key={key} className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground ml-1">
-                                            {label}
-                                        </label>
-                                        <div className="flex items-center gap-3 p-2 rounded-xl border border-border bg-background/50">
-                                            <input
-                                                type="color"
-                                                value={currentHex}
-                                                onChange={(e) => handleColorChange(key, e.target.value)}
-                                                className="h-8 w-8 cursor-pointer rounded-lg border-0 bg-transparent p-0"
+                            return (
+                                <button
+                                    key={theme.id}
+                                    onClick={() => handleThemeSelect(theme)}
+                                    className={`
+                                        group relative flex items-start gap-4 rounded-xl border p-4 text-left
+                                        transition-all duration-200 hover:shadow-md
+                                        ${isActive
+                                            ? 'border-primary bg-primary/10 shadow-sm ring-2 ring-primary/30'
+                                            : 'border-border bg-background hover:border-primary/40 hover:bg-secondary'
+                                        }
+                                    `}
+                                >
+                                    <div className="flex shrink-0 flex-col gap-1 pt-0.5">
+                                        {previewColors.map((hsl, i) => (
+                                            <div
+                                                key={i}
+                                                className="h-4 w-4 rounded-full border border-black/10 shadow-inner"
+                                                style={{ backgroundColor: `hsl(${hsl})` }}
                                             />
-                                            <span className="text-[10px] font-mono font-bold text-foreground opacity-60">
-                                                {currentHex.toUpperCase()}
-                                            </span>
-                                        </div>
+                                        ))}
                                     </div>
-                                )
-                            })}
-                        </div>
+                                    <div className="flex-1 min-w-0 pr-6">
+                                        <p className="text-sm font-bold text-foreground leading-tight truncate">
+                                            {theme.name}
+                                        </p>
+                                        <p className="mt-1 text-[10px] text-muted-foreground leading-relaxed line-clamp-2">
+                                            {theme.description}
+                                        </p>
+                                    </div>
+                                    
+                                    {isActive && (
+                                        <div className="absolute top-3 right-3 h-5 w-5 rounded-full bg-primary flex items-center justify-center">
+                                            <Check size={11} className="text-primary-foreground" strokeWidth={3} />
+                                        </div>
+                                    )}
+
+                                    {!isActive && (
+                                        <button
+                                            onClick={(e) => openEditModal(theme, e)}
+                                            className="absolute top-3 right-3 p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all opacity-0 group-hover:opacity-100"
+                                        >
+                                            <Pencil size={12} />
+                                        </button>
+                                    )}
+
+                                    {isActive && (
+                                        <button
+                                            onClick={(e) => openEditModal(theme, e)}
+                                            className="absolute top-10 right-3 p-1.5 rounded-lg text-primary hover:bg-primary/20 transition-all"
+                                        >
+                                            <Pencil size={12} />
+                                        </button>
+                                    )}
+                                </button>
+                            )
+                        })}
                     </div>
                 )}
 
                 <div className="flex items-start gap-2 rounded-xl border border-border bg-muted/40 px-4 py-3 mt-6">
                     <Info size={14} className="mt-0.5 shrink-0 text-muted-foreground" />
                     <p className="text-xs text-muted-foreground">
-                        Ahora puedes importar temas pegando el código CSS directamente. Ideal para usar paletas creadas por IA.
+                        Ahora puedes importar o editar temas directamente. Los cambios se sincronizan con Supabase para todos tus dispositivos.
                     </p>
                 </div>
             </section>

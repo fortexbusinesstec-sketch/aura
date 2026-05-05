@@ -7,6 +7,7 @@ import { PinScreen } from '@/components/portal/PinScreen'
 import { PortalDashboard } from '@/components/portal/PortalDashboard'
 import { ExecutionPortalView } from '@/components/portal/ExecutionPortalView'
 import { PortalThemePicker } from '@/components/portal/PortalThemePicker'
+import { ThemeInjector } from '@/components/providers/ThemeInjector'
 import { Loader2 } from 'lucide-react'
 
 export default function ClientPortalPage() {
@@ -47,100 +48,70 @@ export default function ClientPortalPage() {
         const loadData = async () => {
             setIsLoading(true)
 
-            // 1. Find client by portal_token
-            const { data: client, error: clientError } = await supabase
-                .from('clients')
-                .select('*')
+            // ═══════════════════════════════════════════════════════════════
+            // PASO 1: Buscar en opportunities (vista propuesta)
+            // Solo mostrar si status IN ('published', 'approved')
+            // ═══════════════════════════════════════════════════════════════
+            const { data: oppData } = await supabase
+                .from('opportunities')
+                .select('*, client:clients(*)')
                 .eq('portal_token', portal_token)
-                .single()
+                .in('status', ['published', 'approved'])
+                .maybeSingle()
 
-            if (clientError || !client) {
-                setError('Portal no encontrado. Contacta a tu asesor.')
+            if (oppData) {
+                setClientData(oppData.client)
+                setViewMode('proposal')
+                setProjectData(oppData)
+                setOpportunityData(oppData)
+
+                // Load catalog for price calculations/names
+                const { data: catalogData } = await supabase.from('catalog_items').select('*')
+                setCatalog(catalogData || [])
+
                 setIsLoading(false)
                 return
             }
 
-            setClientData(client)
+            // ═══════════════════════════════════════════════════════════════
+            // PASO 2: Buscar en projects (vista ejecución)
+            // Cualquier proyecto con este portal_token es válido
+            // ═══════════════════════════════════════════════════════════════
+            const { data: projData } = await supabase
+                .from('projects')
+                .select('*, opportunity:opportunities(*), client:clients(*)')
+                .eq('portal_token', portal_token)
+                .maybeSingle()
 
-            // 2. Fetch both latest project and latest deployed opportunity
-            const [projectRes, opportunityRes] = await Promise.all([
-                supabase
-                    .from('projects')
-                    .select('*, opportunity:opportunities(*)')
-                    .eq('client_id', client.id)
-                    .order('updated_at', { ascending: false })
-                    .limit(1)
-                    .maybeSingle(),
-                supabase
-                    .from('opportunities')
+            if (projData) {
+                setClientData(projData.client)
+                setViewMode('execution')
+                setProjectData(projData)
+                setOpportunityData(projData.opportunity || null)
+
+                // Fetch project phases
+                const { data: phasesData } = await supabase
+                    .from('project_phases')
                     .select('*')
-                    .eq('client_id', client.id)
-                    .order('updated_at', { ascending: false })
-                    .limit(1)
-                    .maybeSingle()
-            ])
+                    .eq('project_id', projData.id)
+                    .order('phase_order', { ascending: true })
+                setPhases(phasesData || [])
 
-            const project = projectRes.data
-            const opportunity = opportunityRes.data
+                // Fetch project services
+                const { data: servicesData } = await supabase
+                    .from('project_services')
+                    .select('*')
+                    .eq('project_id', projData.id)
+                setProjectServices(servicesData || [])
 
-            let finalData = null
-            let oppData = null
-            let activeMode: 'proposal' | 'execution' = 'proposal'
-
-            // Determine which one is more recent or relevant
-            const projectDate = project ? new Date(project.updated_at).getTime() : 0
-            const opportunityDate = opportunity ? new Date(opportunity.updated_at).getTime() : 0
-
-            // If project is more recent AND mode is execution, prioritize project
-            if (project && projectDate >= opportunityDate && project.portal_view_mode === 'execution') {
-                activeMode = 'execution'
-                oppData = project.opportunity
-                finalData = { ...project.opportunity, ...project }
-            } else if (opportunity) {
-                // Prioritize the latest deployed opportunity for proposal mode
-                activeMode = 'proposal'
-                oppData = opportunity
-                // If there's a project linked to this opportunity, merge them but keep opportunity as base for proposal fields
-                if (project && project.opportunity_id === opportunity.id) {
-                    finalData = { ...project, ...opportunity }
-                } else {
-                    finalData = opportunity
-                }
-            } else if (project) {
-                // Fallback to project if no standalone deployed opportunity exists
-                activeMode = project.portal_view_mode === 'execution' ? 'execution' : 'proposal'
-                oppData = project.opportunity
-                finalData = { ...project.opportunity, ...project }
+                setIsLoading(false)
+                return
             }
 
-            if (finalData) {
-                setViewMode(activeMode)
-                setProjectData(finalData)
-                setOpportunityData(oppData)
-
-                // Load project phases if it's a project
-                if (finalData.id && activeMode === 'execution') {
-                    const { data: phasesData } = await supabase
-                        .from('project_phases')
-                        .select('*')
-                        .eq('project_id', finalData.id)
-                        .order('phase_order', { ascending: true })
-                    setPhases(phasesData || [])
-
-                    const { data: servicesData } = await supabase
-                        .from('project_services')
-                        .select('*')
-                        .eq('project_id', finalData.id)
-                    setProjectServices(servicesData || [])
-                }
-            } else {
-                setError('Aún no hay una propuesta publicada para este portal.')
-            }
-
-            // 3. Load catalog for price calculations/names if needed
-            const { data: catalogData } = await supabase.from('catalog_items').select('*')
-            setCatalog(catalogData || [])
-
+            // ═══════════════════════════════════════════════════════════════
+            // PASO 3: No encontrado en ninguna tabla
+            // ═══════════════════════════════════════════════════════════════
+            setError('Portal no encontrado. Contacta a tu asesor.')
             setIsLoading(false)
         }
 
@@ -190,10 +161,12 @@ export default function ClientPortalPage() {
         )
     }
 
+    const clientId = clientData?.id
+
     // Render execution view
     if (viewMode === 'execution' && projectData) {
         return (
-            <>
+            <ThemeInjector source="client" clientId={clientId}>
                 <PortalThemePicker portalToken={portal_token} />
                 <ExecutionPortalView
                     client={clientData}
@@ -204,13 +177,13 @@ export default function ClientPortalPage() {
                     onLogout={handleLogout}
                     portalToken={portal_token}
                 />
-            </>
+            </ThemeInjector>
         )
     }
 
-    // Render proposal view (existing)
+    // Render proposal view
     return (
-        <>
+        <ThemeInjector source="client" clientId={clientId}>
             <PortalThemePicker portalToken={portal_token} />
             <PortalDashboard
                 client={clientData}
@@ -220,6 +193,6 @@ export default function ClientPortalPage() {
                 onLogout={handleLogout}
                 portalToken={portal_token}
             />
-        </>
+        </ThemeInjector>
     )
 }

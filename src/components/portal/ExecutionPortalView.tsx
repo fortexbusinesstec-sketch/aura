@@ -67,7 +67,7 @@ const statusLabel = (status: string) => {
         pending: 'Pendiente',
         in_progress: 'En Progreso',
         in_review: 'En Revisión',
-        client_review: 'Revisión Cliente',
+        client_review: 'Esperando tu revisión',
         approved: 'Aprobado',
         completed: 'Completado',
         blocked: 'Bloqueado',
@@ -78,16 +78,16 @@ const statusLabel = (status: string) => {
 
 const statusColor = (status: string) => {
     const map: Record<string, string> = {
-        pending: 'bg-slate-100 text-slate-600 border-slate-200',
-        in_progress: 'bg-amber-50 text-amber-700 border-amber-200',
-        in_review: 'bg-sky-50 text-sky-700 border-sky-200',
-        client_review: 'bg-violet-50 text-violet-700 border-violet-200',
-        approved: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-        completed: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-        blocked: 'bg-red-50 text-red-700 border-red-200',
-        skipped: 'bg-slate-50 text-slate-400 border-slate-100',
+        pending: 'bg-muted text-muted-foreground border-border',
+        in_progress: 'bg-warning/15 text-warning-foreground border-warning/30',
+        in_review: 'bg-accent/15 text-accent-foreground border-accent/30',
+        client_review: 'bg-primary/15 text-primary border-primary/30',
+        approved: 'bg-success/15 text-success-foreground border-success/30',
+        completed: 'bg-success/20 text-success-foreground border-success/40',
+        blocked: 'bg-destructive/15 text-destructive border-destructive/30',
+        skipped: 'bg-muted/50 text-muted-foreground/50 border-border/50',
     }
-    return map[status] || 'bg-slate-100 text-slate-600 border-slate-200'
+    return map[status] || 'bg-muted text-muted-foreground border-border'
 }
 
 const phaseIcon = (key: string) => {
@@ -132,32 +132,32 @@ export function ExecutionPortalView({
         : 'EN DESARROLLO'
 
     const projectStatusColor = project.status === 'completed'
-        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+        ? 'bg-success/15 text-success-foreground border-success/30'
         : project.status === 'review'
-        ? 'bg-sky-50 text-sky-700 border-sky-200'
-        : 'bg-amber-50 text-amber-700 border-amber-200'
+        ? 'bg-accent/15 text-accent-foreground border-accent/30'
+        : 'bg-warning/15 text-warning-foreground border-warning/30'
 
     return (
-        <div className="min-h-screen bg-[#F9FAFB] text-slate-900 font-sans">
+        <div className="min-h-screen bg-background text-foreground font-sans">
             {/* Header */}
-            <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/60">
+            <header className="sticky top-0 z-30 bg-card/90 backdrop-blur-md border-b border-border/50">
                 <div className="max-w-5xl mx-auto px-4 sm:px-6">
                     <div className="flex items-center justify-between py-3 gap-4">
                         {/* Logo */}
                         <div className="flex items-center gap-2.5 shrink-0">
-                            <div className="w-8 h-8 bg-[#1E3A5F] rounded-lg flex items-center justify-center">
-                                <span className="text-white font-black text-[10px]">A</span>
+                            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                                <span className="text-primary-foreground font-black text-[10px]">A</span>
                             </div>
-                            <span className="hidden sm:block font-extrabold tracking-tighter text-xs uppercase text-[#1E3A5F]">Aura OS</span>
+                            <span className="hidden sm:block font-extrabold tracking-tighter text-xs uppercase text-foreground">Aura OS</span>
                         </div>
 
                         {/* Center: Project Info */}
                         <div className="flex-1 min-w-0 flex flex-col items-center">
-                            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
                                 Portal de Proyecto
                             </div>
                             <div className="flex items-center gap-2 mt-0.5">
-                                <span className="text-sm font-bold text-slate-900 truncate max-w-[200px] sm:max-w-sm">
+                                <span className="text-sm font-bold text-foreground truncate max-w-[200px] sm:max-w-sm">
                                     {project.name}
                                 </span>
                             </div>
@@ -170,21 +170,21 @@ export function ExecutionPortalView({
                             </span>
                             <button
                                 onClick={() => setShowComment(true)}
-                                className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 text-[10px] font-black uppercase tracking-wider text-slate-600 hover:bg-slate-50 transition-colors"
+                                className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-[10px] font-black uppercase tracking-wider text-muted-foreground hover:bg-secondary transition-colors"
                             >
                                 <MessageSquare size={12} /> 💬 Comentar
                             </button>
                             {opportunity && (
                                 <button
                                     onClick={() => setActiveTab('info')}
-                                    className="hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-100 text-[10px] font-black uppercase tracking-wider text-slate-600 hover:bg-slate-200 transition-colors"
+                                    className="hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-lg bg-secondary text-[10px] font-black uppercase tracking-wider text-muted-foreground hover:bg-secondary/80 transition-colors"
                                 >
                                     <FileText size={12} /> 📄 Ver Propuesta
                                 </button>
                             )}
                             <button
                                 onClick={onLogout}
-                                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider text-slate-400 hover:text-slate-600 transition-colors"
+                                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider text-muted-foreground/60 hover:text-muted-foreground transition-colors"
                                 title="Cerrar sesión"
                             >
                                 <LogOut size={12} />
@@ -194,7 +194,7 @@ export function ExecutionPortalView({
                 </div>
 
                 {/* Tabs */}
-                <nav className="border-t border-slate-100">
+                <nav className="border-t border-border/50">
                     <div className="max-w-5xl mx-auto px-4 sm:px-6">
                         <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-2">
                             {tabs.map(tab => {
@@ -206,8 +206,8 @@ export function ExecutionPortalView({
                                         onClick={() => setActiveTab(tab.id)}
                                         className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider whitespace-nowrap transition-all shrink-0
                                             ${isActive
-                                                ? 'bg-[#1E3A5F] text-white shadow-sm'
-                                                : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
+                                                ? 'bg-primary text-primary-foreground shadow-sm'
+                                                : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
                                             }`}
                                     >
                                         <Icon size={13} />
@@ -240,19 +240,19 @@ export function ExecutionPortalView({
             </main>
 
             {/* Footer */}
-            <footer className="border-t border-slate-100 bg-white py-12 text-center mt-12">
+            <footer className="border-t border-border/50 bg-card py-12 text-center mt-12">
                 <div className="flex flex-col items-center gap-6">
                     <div className="flex items-center gap-2.5 opacity-20 hover:opacity-40 transition-opacity">
-                        <div className="w-8 h-8 bg-[#1E3A5F] rounded-xl flex items-center justify-center">
-                            <span className="text-white font-black text-[12px]">A</span>
+                        <div className="w-8 h-8 bg-primary rounded-xl flex items-center justify-center">
+                            <span className="text-primary-foreground font-black text-[12px]">A</span>
                         </div>
-                        <span className="font-black text-xs uppercase tracking-tighter text-[#1E3A5F]">Aura OS</span>
+                        <span className="font-black text-xs uppercase tracking-tighter text-foreground">Aura OS</span>
                     </div>
                     <div className="space-y-1.5">
-                        <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-300">
+                        <p className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground/60">
                             © FORTEX DIGITAL SOLUTIONS • PROPIEDAD INTELECTUAL
                         </p>
-                        <p className="text-[9px] text-slate-300 font-medium max-w-xs mx-auto leading-relaxed">
+                        <p className="text-[9px] text-muted-foreground font-medium max-w-xs mx-auto leading-relaxed">
                             Este portal es confidencial y ha sido generado específicamente para {client?.razon_social || 'el cliente'}.
                         </p>
                     </div>
@@ -273,14 +273,14 @@ function DesarrolloTab({ project, phases }: { project: any; phases: any[] }) {
     return (
         <div className="space-y-6 animate-in fade-in duration-300">
             {/* Fases Activas */}
-            <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6">
+            <div className="bg-card rounded-2xl border border-border/50 p-5 sm:p-6">
                 <div className="flex items-center gap-2 mb-5">
-                    <Layers size={16} className="text-[#1E3A5F]" />
-                    <h3 className="text-xs font-black uppercase tracking-tighter text-slate-900">Fases Activas</h3>
+                    <Layers size={16} className="text-primary" />
+                    <h3 className="text-xs font-black uppercase tracking-tighter text-foreground">Fases Activas</h3>
                 </div>
 
                 {phases.length === 0 ? (
-                    <div className="text-center py-8 text-slate-400 text-sm">No hay fases configuradas</div>
+                    <div className="text-center py-8 text-muted-foreground text-sm">No hay fases configuradas</div>
                 ) : (
                     <div className="space-y-0">
                         {phases.map((phase, i) => {
@@ -290,6 +290,7 @@ function DesarrolloTab({ project, phases }: { project: any; phases: any[] }) {
                             const isLast = i === phases.length - 1
                             const hasDeliverables = phase.deliverables && phase.deliverables.length > 0
                             const isClientApproved = !!phase.client_approved_at
+                            const isClientReview = phase.status === 'client_review'
 
                             return (
                                 <div key={phase.id} className="flex gap-4">
@@ -297,28 +298,28 @@ function DesarrolloTab({ project, phases }: { project: any; phases: any[] }) {
                                     <div className="flex flex-col items-center">
                                         <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 border-2 ${
                                             isDone
-                                                ? 'bg-emerald-500 border-emerald-500 text-white'
+                                                ? 'bg-success border-success text-success-foreground'
                                                 : isActive
-                                                ? 'bg-amber-50 border-amber-400 text-amber-700'
-                                                : 'bg-slate-100 border-slate-200 text-slate-300'
+                                                ? 'bg-warning/20 border-warning text-warning-foreground'
+                                                : 'bg-muted border-border text-muted-foreground/40'
                                         }`}>
                                             {isDone ? <CheckCircle2 size={16} /> : <Icon size={14} />}
                                         </div>
                                         {!isLast && (
-                                            <div className={`w-0.5 flex-1 ${isDone ? 'bg-emerald-300' : 'bg-slate-200'} my-1`} />
+                                            <div className={`w-0.5 flex-1 ${isDone ? 'bg-success/40' : 'bg-border'} my-1`} />
                                         )}
                                     </div>
 
                                     {/* Content */}
                                     <div className="pb-6 flex-1 min-w-0">
                                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-                                            <h4 className="text-sm font-bold text-slate-900">{phase.phase_name}</h4>
+                                            <h4 className="text-sm font-bold text-foreground">{phase.phase_name}</h4>
                                             <div className="flex items-center gap-2">
                                                 <span className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider border ${statusColor(phase.status)}`}>
                                                     {statusLabel(phase.status).toUpperCase()}
                                                 </span>
                                                 {phase.planned_end_date && (
-                                                    <span className="text-[10px] font-bold text-slate-400">
+                                                    <span className="text-[10px] font-bold text-muted-foreground/60">
                                                         {formatDateShort(phase.planned_end_date)}
                                                     </span>
                                                 )}
@@ -327,10 +328,21 @@ function DesarrolloTab({ project, phases }: { project: any; phases: any[] }) {
 
                                         {isClientApproved && (
                                             <div className="flex items-center gap-1.5 mt-1.5">
-                                                <CheckCircle2 size={12} className="text-emerald-500" />
-                                                <span className="text-[10px] font-bold text-emerald-600">
+                                                <CheckCircle2 size={12} className="text-success" />
+                                                <span className="text-[10px] font-bold text-success-foreground">
                                                     Aprobado el {formatDateShort(phase.client_approved_at)}
                                                 </span>
+                                            </div>
+                                        )}
+
+                                        {isClientReview && !isClientApproved && (
+                                            <div className="flex flex-wrap gap-2 mt-3">
+                                                <button className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-success text-success-foreground text-[10px] font-black uppercase tracking-wider hover:bg-success/90 transition-all active:scale-[0.98]">
+                                                    <CheckCircle2 size={12} /> ✅ Aprobar esta Fase
+                                                </button>
+                                                <button className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary border border-border text-[10px] font-black uppercase tracking-wider text-muted-foreground hover:bg-secondary/80 transition-all active:scale-[0.98]">
+                                                    <MessageSquare size={12} /> 📝 Solicitar Cambios
+                                                </button>
                                             </div>
                                         )}
 
@@ -342,7 +354,7 @@ function DesarrolloTab({ project, phases }: { project: any; phases: any[] }) {
                                                         href={d.url}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-[10px] font-bold text-slate-600 hover:bg-slate-100 transition-colors"
+                                                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-secondary border border-border/50 text-[10px] font-bold text-muted-foreground hover:bg-secondary/80 transition-colors"
                                                     >
                                                         <Download size={10} />
                                                         {d.name}
@@ -360,25 +372,25 @@ function DesarrolloTab({ project, phases }: { project: any; phases: any[] }) {
 
             {/* Preview del sitio web */}
             {stagingUrl && (
-                <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6">
+                <div className="bg-card rounded-2xl border border-border/50 p-5 sm:p-6">
                     <div className="flex items-center gap-2 mb-4">
-                        <Globe size={16} className="text-[#1E3A5F]" />
-                        <h3 className="text-xs font-black uppercase tracking-tighter text-slate-900">Vista Previa del Sitio</h3>
+                        <Globe size={16} className="text-primary" />
+                        <h3 className="text-xs font-black uppercase tracking-tighter text-foreground">Vista Previa del Sitio</h3>
                     </div>
-                    <div className="bg-slate-50 rounded-xl border border-slate-200 p-4 sm:p-6 text-center space-y-4">
-                        <div className="w-14 h-14 rounded-2xl bg-[#1E3A5F]/10 flex items-center justify-center mx-auto">
-                            <Code2 size={28} className="text-[#1E3A5F]" />
+                    <div className="bg-secondary/50 rounded-xl border border-border/50 p-4 sm:p-6 text-center space-y-4">
+                        <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
+                            <Code2 size={28} className="text-primary" />
                         </div>
                         <div>
-                            <p className="text-sm font-bold text-slate-900">URL de Staging</p>
-                            <p className="text-xs text-slate-500 font-medium mt-1 break-all">{stagingUrl}</p>
+                            <p className="text-sm font-bold text-foreground">URL de Staging</p>
+                            <p className="text-xs text-muted-foreground font-medium mt-1 break-all">{stagingUrl}</p>
                         </div>
                         <div className="flex items-center justify-center gap-3">
                             <a
                                 href={stagingUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#1E3A5F] text-white rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-[#1E3A5F]/90 transition-colors active:scale-95"
+                                className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-primary/90 transition-colors active:scale-95"
                             >
                                 <ExternalLink size={12} />
                                 🔍 Abrir Staging
@@ -387,7 +399,7 @@ function DesarrolloTab({ project, phases }: { project: any; phases: any[] }) {
                                 href={stagingUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-slate-200 transition-colors active:scale-95"
+                                className="inline-flex items-center gap-2 px-5 py-2.5 bg-secondary text-foreground border border-border rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-secondary/80 transition-colors active:scale-95"
                             >
                                 <Smartphone size={12} />
                                 📱 Vista Mobile
@@ -408,9 +420,9 @@ function DesarrolloTab({ project, phases }: { project: any; phases: any[] }) {
 function ServiciosTab({ projectServices }: { projectServices: any[] }) {
     if (!projectServices || projectServices.length === 0) {
         return (
-            <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center animate-in fade-in duration-300">
-                <Zap size={32} className="text-slate-300 mx-auto mb-3" />
-                <p className="text-sm font-bold text-slate-400">No hay servicios adicionales contratados</p>
+            <div className="bg-card rounded-2xl border border-border/50 p-8 text-center animate-in fade-in duration-300">
+                <Zap size={32} className="text-muted-foreground/30 mx-auto mb-3" />
+                <p className="text-sm font-bold text-muted-foreground">No hay servicios adicionales contratados</p>
             </div>
         )
     }
@@ -435,19 +447,19 @@ function ServiciosTab({ projectServices }: { projectServices: any[] }) {
                 const actions: any[] = service.actions_jsonb || []
 
                 return (
-                    <div key={service.id} className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6">
+                    <div key={service.id} className="bg-card rounded-2xl border border-border/50 p-5 sm:p-6">
                         {/* Header */}
                         <div className="flex items-center justify-between mb-5">
                             <div className="flex items-center gap-2">
-                                <div className="p-1.5 rounded-lg bg-[#1E3A5F]/10">
-                                    <Icon size={16} className="text-[#1E3A5F]" />
+                                <div className="p-1.5 rounded-lg bg-primary/10">
+                                    <Icon size={16} className="text-primary" />
                                 </div>
-                                <h3 className="text-sm font-black uppercase tracking-tighter text-slate-900">
+                                <h3 className="text-sm font-black uppercase tracking-tighter text-foreground">
                                     {serviceTypeLabel[service.service_type] || service.service_type}
                                 </h3>
                             </div>
                             {service.service_level && (
-                                <span className="px-2.5 py-1 rounded-lg bg-slate-100 text-[9px] font-black uppercase tracking-wider text-slate-500 border border-slate-200">
+                                <span className="px-2.5 py-1 rounded-lg bg-secondary text-[9px] font-black uppercase tracking-wider text-muted-foreground border border-border/50">
                                     Nivel: {service.service_level}
                                 </span>
                             )}
@@ -462,11 +474,11 @@ function ServiciosTab({ projectServices }: { projectServices: any[] }) {
                                         .replace(/_/g, ' ')
                                         .replace(/lighthouse|seo|core web|pagespeed/gi, (m) => m.toUpperCase())
                                     return (
-                                        <div key={key} className="bg-slate-50 rounded-xl border border-slate-100 p-3 text-center">
-                                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">
+                                        <div key={key} className="bg-secondary/50 rounded-xl border border-border/50 p-3 text-center">
+                                            <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-1">
                                                 {label}
                                             </p>
-                                            <p className="text-lg font-black text-[#1E3A5F]">{String(value)}</p>
+                                            <p className="text-lg font-black text-primary">{String(value)}</p>
                                         </div>
                                     )
                                 })}
@@ -476,7 +488,7 @@ function ServiciosTab({ projectServices }: { projectServices: any[] }) {
                         {/* Acciones */}
                         {actions.length > 0 && (
                             <div>
-                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-3">
                                     Acciones Realizadas
                                 </p>
                                 <div className="space-y-2">
@@ -488,31 +500,31 @@ function ServiciosTab({ projectServices }: { projectServices: any[] }) {
                                                 key={idx}
                                                 className={`flex items-start gap-3 p-3 rounded-xl border ${
                                                     isDone
-                                                        ? 'bg-emerald-50/50 border-emerald-100'
+                                                        ? 'bg-success/10 border-success/20'
                                                         : isInProgress
-                                                        ? 'bg-amber-50/50 border-amber-100'
-                                                        : 'bg-slate-50 border-slate-100'
+                                                        ? 'bg-warning/10 border-warning/20'
+                                                        : 'bg-secondary/50 border-border/50'
                                                 }`}
                                             >
                                                 <div className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
                                                     isDone
-                                                        ? 'bg-emerald-500 text-white'
+                                                        ? 'bg-success text-success-foreground'
                                                         : isInProgress
-                                                        ? 'bg-amber-400 text-white'
-                                                        : 'bg-slate-200 text-slate-400'
+                                                        ? 'bg-warning text-warning-foreground'
+                                                        : 'bg-muted text-muted-foreground/40'
                                                 }`}>
                                                     {isDone ? <CheckCircle2 size={12} /> : isInProgress ? <Clock size={12} /> : <AlertCircle size={12} />}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <p className="text-xs font-bold text-slate-800">{action.action}</p>
+                                                    <p className="text-xs font-bold text-foreground/80">{action.action}</p>
                                                     <div className="flex items-center gap-2 mt-0.5">
                                                         <span className={`text-[9px] font-black uppercase tracking-wider ${
-                                                            isDone ? 'text-emerald-600' : isInProgress ? 'text-amber-600' : 'text-slate-400'
+                                                            isDone ? 'text-success-foreground' : isInProgress ? 'text-warning-foreground' : 'text-muted-foreground/40'
                                                         }`}>
                                                             {isDone ? 'Completado' : isInProgress ? 'En Progreso' : 'Pendiente'}
                                                         </span>
                                                         {action.completed_at && (
-                                                            <span className="text-[9px] text-slate-400">
+                                                            <span className="text-[9px] text-muted-foreground/60">
                                                                 {formatDateShort(action.completed_at)}
                                                             </span>
                                                         )}
@@ -523,7 +535,7 @@ function ServiciosTab({ projectServices }: { projectServices: any[] }) {
                                                         href={action.evidence_url}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className="shrink-0 text-slate-400 hover:text-[#1E3A5F]"
+                                                        className="shrink-0 text-muted-foreground/40 hover:text-primary transition-colors"
                                                     >
                                                         <ExternalLink size={14} />
                                                     </a>
@@ -565,10 +577,10 @@ function ArchivosTab({ phases }: { phases: any[] }) {
 
     return (
         <div className="space-y-5 animate-in fade-in duration-300">
-            <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6">
+            <div className="bg-card rounded-2xl border border-border/50 p-5 sm:p-6">
                 <div className="flex items-center gap-2 mb-4">
-                    <FileText size={16} className="text-[#1E3A5F]" />
-                    <h3 className="text-xs font-black uppercase tracking-tighter text-slate-900">Archivos y Entregables</h3>
+                    <FileText size={16} className="text-primary" />
+                    <h3 className="text-xs font-black uppercase tracking-tighter text-foreground">Archivos y Entregables</h3>
                 </div>
 
                 {/* Filters */}
@@ -579,8 +591,8 @@ function ArchivosTab({ phases }: { phases: any[] }) {
                             onClick={() => setActiveFilter(name)}
                             className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${
                                 activeFilter === name
-                                    ? 'bg-[#1E3A5F] text-white'
-                                    : 'bg-slate-50 text-slate-500 border border-slate-200 hover:bg-slate-100'
+                                    ? 'bg-primary text-primary-foreground'
+                                    : 'bg-secondary text-muted-foreground border border-border/50 hover:bg-secondary/80'
                             }`}
                         >
                             {name === 'todos' ? 'Todos' : name}
@@ -589,7 +601,7 @@ function ArchivosTab({ phases }: { phases: any[] }) {
                 </div>
 
                 {filtered.length === 0 ? (
-                    <div className="text-center py-8 text-slate-400 text-sm">No hay archivos disponibles</div>
+                    <div className="text-center py-8 text-muted-foreground text-sm">No hay archivos disponibles</div>
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {filtered.map((file, idx) => (
@@ -598,18 +610,18 @@ function ArchivosTab({ phases }: { phases: any[] }) {
                                 href={file.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-3 p-4 rounded-xl bg-slate-50 border border-slate-200 hover:border-[#1E3A5F]/30 hover:shadow-sm transition-all"
+                                className="flex items-center gap-3 p-4 rounded-xl bg-secondary/50 border border-border/50 hover:border-primary/30 hover:shadow-sm transition-all"
                             >
-                                <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center shrink-0">
-                                    <Download size={16} className="text-[#1E3A5F]" />
+                                <div className="w-10 h-10 rounded-xl bg-card border border-border/50 flex items-center justify-center shrink-0">
+                                    <Download size={16} className="text-primary" />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-xs font-bold text-slate-800 truncate">{file.name}</p>
-                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">
+                                    <p className="text-xs font-bold text-foreground truncate">{file.name}</p>
+                                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider mt-0.5">
                                         {file.phase_name} • {file.type || 'Archivo'}
                                     </p>
                                 </div>
-                                <ChevronRight size={14} className="text-slate-300 shrink-0" />
+                                <ChevronRight size={14} className="text-muted-foreground/30 shrink-0" />
                             </a>
                         ))}
                     </div>
@@ -628,9 +640,9 @@ function InfoTab({ opportunity }: { opportunity: any }) {
 
     if (!opportunity) {
         return (
-            <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center animate-in fade-in duration-300">
-                <Briefcase size={32} className="text-slate-300 mx-auto mb-3" />
-                <p className="text-sm font-bold text-slate-400">Información de la propuesta no disponible</p>
+            <div className="bg-card rounded-2xl border border-border/50 p-8 text-center animate-in fade-in duration-300">
+                <Briefcase size={32} className="text-muted-foreground/30 mx-auto mb-3" />
+                <p className="text-sm font-bold text-muted-foreground">Información de la propuesta no disponible</p>
             </div>
         )
     }
@@ -642,16 +654,16 @@ function InfoTab({ opportunity }: { opportunity: any }) {
             icon: BarChart3,
             content: (
                 <div className="space-y-3">
-                    <p className="text-xs text-slate-600 leading-relaxed">
-                        <strong className="text-slate-900">Propuesta de valor:</strong>{' '}
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                        <strong className="text-foreground">Propuesta de valor:</strong>{' '}
                         {opportunity.draft_jsonb?.value_proposition || 'No especificado'}
                     </p>
-                    <p className="text-xs text-slate-600 leading-relaxed">
-                        <strong className="text-slate-900">Hallazgo principal:</strong>{' '}
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                        <strong className="text-foreground">Hallazgo principal:</strong>{' '}
                         {opportunity.discovery_jsonb?.key_finding || 'No especificado'}
                     </p>
-                    <p className="text-xs text-slate-600 leading-relaxed">
-                        <strong className="text-slate-900">Industria:</strong>{' '}
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                        <strong className="text-foreground">Industria:</strong>{' '}
                         {opportunity.discovery_jsonb?.industry || 'No especificado'}
                     </p>
                 </div>
@@ -663,12 +675,12 @@ function InfoTab({ opportunity }: { opportunity: any }) {
             icon: Globe,
             content: (
                 <div className="space-y-3">
-                    <p className="text-xs text-slate-600 leading-relaxed">
-                        <strong className="text-slate-900">Diagnóstico:</strong>{' '}
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                        <strong className="text-foreground">Diagnóstico:</strong>{' '}
                         {opportunity.research_jsonb?.diagnosis || 'No especificado'}
                     </p>
-                    <p className="text-xs text-slate-600 leading-relaxed">
-                        <strong className="text-slate-900">Target:</strong>{' '}
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                        <strong className="text-foreground">Target:</strong>{' '}
                         {opportunity.strategy_jsonb?.target_user || 'No especificado'}
                     </p>
                 </div>
@@ -680,12 +692,12 @@ function InfoTab({ opportunity }: { opportunity: any }) {
             icon: Target,
             content: (
                 <div className="space-y-3">
-                    <p className="text-xs text-slate-600 leading-relaxed">
-                        <strong className="text-slate-900">Mensaje clave:</strong>{' '}
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                        <strong className="text-foreground">Mensaje clave:</strong>{' '}
                         {opportunity.strategy_jsonb?.key_message || 'No especificado'}
                     </p>
-                    <p className="text-xs text-slate-600 leading-relaxed">
-                        <strong className="text-slate-900">Propuesta técnica:</strong>{' '}
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                        <strong className="text-foreground">Propuesta técnica:</strong>{' '}
                         {opportunity.strategy_jsonb?.value_proposition || 'No especificado'}
                     </p>
                 </div>
@@ -698,29 +710,29 @@ function InfoTab({ opportunity }: { opportunity: any }) {
             content: (
                 <div className="space-y-3">
                     <div className="grid grid-cols-2 gap-3">
-                        <div className="bg-slate-50 rounded-xl p-3">
-                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Inversión Total</p>
-                            <p className="text-lg font-black text-slate-900 mt-1">
+                        <div className="bg-secondary/50 rounded-xl p-3">
+                            <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Inversión Total</p>
+                            <p className="text-lg font-black text-foreground mt-1">
                                 S/ {opportunity.draft_jsonb?.totalCalculated?.toLocaleString() || '0'}
                             </p>
                         </div>
-                        <div className="bg-slate-50 rounded-xl p-3">
-                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Timeline</p>
-                            <p className="text-lg font-black text-slate-900 mt-1">
+                        <div className="bg-secondary/50 rounded-xl p-3">
+                            <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Timeline</p>
+                            <p className="text-lg font-black text-foreground mt-1">
                                 {opportunity.delivery_time_text || 'No especificado'}
                             </p>
                         </div>
                     </div>
                     {opportunity.financials_jsonb && (
                         <div className="space-y-2">
-                            <p className="text-xs text-slate-600">
-                                <strong>ROI:</strong> {opportunity.financials_jsonb.roi_estimate || '—'}
+                            <p className="text-xs text-muted-foreground">
+                                <strong className="text-foreground">ROI:</strong> {opportunity.financials_jsonb.roi_estimate || '—'}
                             </p>
-                            <p className="text-xs text-slate-600">
-                                <strong>Potencial:</strong> {opportunity.financials_jsonb.revenue_potential || '—'}
+                            <p className="text-xs text-muted-foreground">
+                                <strong className="text-foreground">Potencial:</strong> {opportunity.financials_jsonb.revenue_potential || '—'}
                             </p>
-                            <p className="text-xs text-slate-600">
-                                <strong>Términos:</strong> {opportunity.financials_jsonb.payment_terms || '—'}
+                            <p className="text-xs text-muted-foreground">
+                                <strong className="text-foreground">Términos:</strong> {opportunity.financials_jsonb.payment_terms || '—'}
                             </p>
                         </div>
                     )}
@@ -731,10 +743,10 @@ function InfoTab({ opportunity }: { opportunity: any }) {
 
     return (
         <div className="space-y-4 animate-in fade-in duration-300">
-            <div className="bg-amber-50 rounded-xl border border-amber-200 px-4 py-3 flex items-center gap-2">
-                <AlertCircle size={14} className="text-amber-600 shrink-0" />
-                <p className="text-[10px] font-bold text-amber-700 uppercase tracking-wider">
-                    Información histórica de la propuesta
+            <div className="bg-warning/10 rounded-xl border border-warning/20 px-4 py-3 flex items-center gap-2">
+                <AlertCircle size={14} className="text-warning-foreground shrink-0" />
+                <p className="text-[10px] font-bold text-warning-foreground uppercase tracking-wider">
+                    Información histórica de la propuesta aprobada
                 </p>
             </div>
 
@@ -742,24 +754,24 @@ function InfoTab({ opportunity }: { opportunity: any }) {
                 const Icon = section.icon
                 const isOpen = openSection === section.id
                 return (
-                    <div key={section.id} className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+                    <div key={section.id} className="bg-card rounded-2xl border border-border/50 overflow-hidden">
                         <button
                             onClick={() => setOpenSection(isOpen ? null : section.id)}
-                            className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-slate-50 transition-colors"
+                            className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-secondary/50 transition-colors"
                         >
                             <div className="flex items-center gap-2">
-                                <Icon size={16} className="text-[#1E3A5F]" />
-                                <span className="text-xs font-black uppercase tracking-tighter text-slate-900">
+                                <Icon size={16} className="text-primary" />
+                                <span className="text-xs font-black uppercase tracking-tighter text-foreground">
                                     {section.label}
                                 </span>
                             </div>
                             <ChevronRight
                                 size={14}
-                                className={`text-slate-400 transition-transform ${isOpen ? 'rotate-90' : ''}`}
+                                className={`text-muted-foreground transition-transform ${isOpen ? 'rotate-90' : ''}`}
                             />
                         </button>
                         {isOpen && (
-                            <div className="px-5 pb-5 border-t border-slate-100 pt-4">
+                            <div className="px-5 pb-5 border-t border-border/50 pt-4">
                                 {section.content}
                             </div>
                         )}
@@ -777,14 +789,14 @@ function InfoTab({ opportunity }: { opportunity: any }) {
 function RoadmapTab({ phases }: { phases: any[] }) {
     return (
         <div className="space-y-5 animate-in fade-in duration-300">
-            <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6">
+            <div className="bg-card rounded-2xl border border-border/50 p-5 sm:p-6">
                 <div className="flex items-center gap-2 mb-6">
-                    <Calendar size={16} className="text-[#1E3A5F]" />
-                    <h3 className="text-xs font-black uppercase tracking-tighter text-slate-900">Roadmap del Proyecto</h3>
+                    <Calendar size={16} className="text-primary" />
+                    <h3 className="text-xs font-black uppercase tracking-tighter text-foreground">Roadmap del Proyecto</h3>
                 </div>
 
                 {phases.length === 0 ? (
-                    <div className="text-center py-8 text-slate-400 text-sm">No hay fases configuradas</div>
+                    <div className="text-center py-8 text-muted-foreground text-sm">No hay fases configuradas</div>
                 ) : (
                     <div className="space-y-0">
                         {phases.map((phase, i) => {
@@ -798,25 +810,25 @@ function RoadmapTab({ phases }: { phases: any[] }) {
                                     <div className="flex flex-col items-center">
                                         <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
                                             isDone
-                                                ? 'bg-emerald-500 text-white'
+                                                ? 'bg-success text-success-foreground'
                                                 : isActive
-                                                ? 'bg-amber-400 text-white'
-                                                : 'bg-slate-200 text-slate-400'
+                                                ? 'bg-warning text-warning-foreground'
+                                                : 'bg-muted text-muted-foreground/40'
                                         }`}>
                                             <Icon size={14} />
                                         </div>
                                         {!isLast && (
-                                            <div className={`w-0.5 flex-1 ${isDone ? 'bg-emerald-300' : 'bg-slate-200'} my-1`} />
+                                            <div className={`w-0.5 flex-1 ${isDone ? 'bg-success/40' : 'bg-border'} my-1`} />
                                         )}
                                     </div>
                                     <div className="pb-6 flex-1">
-                                        <h4 className="text-sm font-bold text-slate-900">{phase.phase_name}</h4>
+                                        <h4 className="text-sm font-bold text-foreground">{phase.phase_name}</h4>
                                         <div className="flex items-center gap-2 mt-1">
                                             <span className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider border ${statusColor(phase.status)}`}>
                                                 {statusLabel(phase.status)}
                                             </span>
                                             {phase.planned_start_date && phase.planned_end_date && (
-                                                <span className="text-[10px] text-slate-400 font-medium">
+                                                <span className="text-[10px] text-muted-foreground font-medium">
                                                     {formatDateShort(phase.planned_start_date)} – {formatDateShort(phase.planned_end_date)}
                                                 </span>
                                             )}

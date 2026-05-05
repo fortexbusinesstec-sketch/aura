@@ -156,7 +156,8 @@ export function ClientDetailContainer({ initialClient, opportunities }: ClientDe
                 social: { status: d.digital_presence?.social?.status || '', observations: d.digital_presence?.social?.observations || '' }
             },
             brand_positioning: {
-                tone: Array.isArray(d.brand_positioning?.tone) ? d.brand_positioning.tone : [],
+                tone: typeof d.brand_positioning?.tone === 'string' ? d.brand_positioning.tone : 
+                      (Array.isArray(d.brand_positioning?.tone) ? d.brand_positioning.tone.join(', ') : ''),
                 colors: Array.isArray(d.brand_positioning?.colors) ? d.brand_positioning.colors : [],
                 perceived_level: {
                     level: d.brand_positioning?.perceived_level?.level || '',
@@ -210,17 +211,80 @@ export function ClientDetailContainer({ initialClient, opportunities }: ClientDe
     }
 
     const updateProfile = (updates: Partial<ClientProfile>) => {
-        setClient(prev => ({
-            ...prev,
-            client_profile_jsonb: { ...(prev.client_profile_jsonb as ClientProfile), ...updates }
-        }))
+        setClient(prev => {
+            const currentProfile = (prev.client_profile_jsonb as ClientProfile) || {}
+            return {
+                ...prev,
+                client_profile_jsonb: { ...currentProfile, ...updates }
+            }
+        })
+    }
+
+    const updateBrandPositioning = (updates: Partial<ClientProfile['brand_positioning']>) => {
+        setClient(prev => {
+            const currentProfile = (prev.client_profile_jsonb as ClientProfile) || {}
+            // Aseguramos que brand_positioning y sus hijos existan antes de mezclar
+            const currentBP = currentProfile.brand_positioning || {
+                tone: '',
+                colors: [],
+                perceived_level: { level: '', observations: '' }
+            }
+            
+            const newBP = { ...currentBP, ...updates }
+            
+            // Si hay actualización en perceived_level, hacemos un merge profundo
+            if (updates.perceived_level) {
+                newBP.perceived_level = { 
+                    ...currentBP.perceived_level, 
+                    ...updates.perceived_level 
+                }
+            }
+
+            return {
+                ...prev,
+                client_profile_jsonb: {
+                    ...currentProfile,
+                    brand_positioning: newBP
+                }
+            }
+        })
+    }
+
+    const updateDigitalPresence = (key: keyof ClientProfile['digital_presence'], updates: any) => {
+        setClient(prev => {
+            const currentProfile = (prev.client_profile_jsonb as ClientProfile) || {}
+            const currentDP = currentProfile.digital_presence || {}
+            return {
+                ...prev,
+                client_profile_jsonb: {
+                    ...currentProfile,
+                    digital_presence: {
+                        ...currentDP,
+                        [key]: { ...currentDP[key], ...updates }
+                    }
+                }
+            }
+        })
     }
 
     const updateInsights = (updates: Partial<ClientInsights>) => {
-        setClient(prev => ({
-            ...prev,
-            client_insights_jsonb: { ...(prev.client_insights_jsonb as ClientInsights), ...updates }
-        }))
+        setClient(prev => {
+            const currentInsights = (prev.client_insights_jsonb as ClientInsights) || {}
+            
+            // Handle nested objects merge if provided
+            const newInsights = { ...currentInsights, ...updates }
+            if (updates.initial_observations) {
+                newInsights.initial_observations = { ...currentInsights.initial_observations, ...updates.initial_observations }
+            }
+            if (updates.technical_conclusion) {
+                newInsights.technical_conclusion = { ...currentInsights.technical_conclusion, ...updates.technical_conclusion }
+            }
+
+            return {
+                ...prev,
+                client_insights_jsonb: newInsights
+            }
+        })
     }
 
     const handleConvertCompetitor = async () => {
@@ -244,7 +308,7 @@ export function ClientDetailContainer({ initialClient, opportunities }: ClientDe
                 social: { status: '', observations: '' }
             },
             brand_positioning: {
-                tone: [],
+                tone: '',
                 colors: [],
                 perceived_level: {
                     level: sourceCompetitor.segment.toLowerCase() === 'premium' ? 'premium' : 
@@ -562,8 +626,8 @@ Sé objetivo, técnico y directo. Evita introducciones innecesarias.`
                                         label="Sitio Web"
                                         value={profile.digital_presence.website.quality}
                                         observations={profile.digital_presence.website.observations}
-                                        onStatusChange={val => updateProfile({ digital_presence: { ...profile.digital_presence, website: { ...profile.digital_presence.website, quality: val as any } } })}
-                                        onObsChange={val => updateProfile({ digital_presence: { ...profile.digital_presence, website: { ...profile.digital_presence.website, observations: val } } })}
+                                        onStatusChange={val => updateDigitalPresence('website', { quality: val as any })}
+                                        onObsChange={val => updateDigitalPresence('website', { observations: val })}
                                         options={[
                                             { label: 'Calidad Baja / Obsoleta', value: 'low' },
                                             { label: 'Calidad Media / Funcional', value: 'medium' },
@@ -575,8 +639,8 @@ Sé objetivo, técnico y directo. Evita introducciones innecesarias.`
                                         label="Publicidad (Ads)"
                                         value={profile.digital_presence.ads.status}
                                         observations={profile.digital_presence.ads.observations}
-                                        onStatusChange={val => updateProfile({ digital_presence: { ...profile.digital_presence, ads: { ...profile.digital_presence.ads, status: val as any } } })}
-                                        onObsChange={val => updateProfile({ digital_presence: { ...profile.digital_presence, ads: { ...profile.digital_presence.ads, observations: val } } })}
+                                        onStatusChange={val => updateDigitalPresence('ads', { status: val as any })}
+                                        onObsChange={val => updateDigitalPresence('ads', { observations: val })}
                                         options={[
                                             { label: 'Activos', value: 'active' },
                                             { label: 'Inactivos', value: 'inactive' },
@@ -588,8 +652,8 @@ Sé objetivo, técnico y directo. Evita introducciones innecesarias.`
                                         label="SEO / Posicionamiento"
                                         value={profile.digital_presence.seo.status}
                                         observations={profile.digital_presence.seo.observations}
-                                        onStatusChange={val => updateProfile({ digital_presence: { ...profile.digital_presence, seo: { ...profile.digital_presence.seo, status: val as any } } })}
-                                        onObsChange={val => updateProfile({ digital_presence: { ...profile.digital_presence, seo: { ...profile.digital_presence.seo, observations: val } } })}
+                                        onStatusChange={val => updateDigitalPresence('seo', { status: val as any })}
+                                        onObsChange={val => updateDigitalPresence('seo', { observations: val })}
                                         options={[
                                             { label: 'Nulo / No indexado', value: 'none' },
                                             { label: 'Básico / Branding', value: 'basic' },
@@ -601,8 +665,8 @@ Sé objetivo, técnico y directo. Evita introducciones innecesarias.`
                                         label="Estrategia Social"
                                         value={profile.digital_presence.social.status}
                                         observations={profile.digital_presence.social.observations}
-                                        onStatusChange={val => updateProfile({ digital_presence: { ...profile.digital_presence, social: { ...profile.digital_presence.social, status: val as any } } })}
-                                        onObsChange={val => updateProfile({ digital_presence: { ...profile.digital_presence, social: { ...profile.digital_presence.social, observations: val } } })}
+                                        onStatusChange={val => updateDigitalPresence('social', { status: val as any })}
+                                        onObsChange={val => updateDigitalPresence('social', { observations: val })}
                                         options={[
                                             { label: 'Inactivo', value: 'inactive' },
                                             { label: 'Moderado / Constante', value: 'moderate' },
@@ -618,16 +682,19 @@ Sé objetivo, técnico y directo. Evita introducciones innecesarias.`
                                     <Zap size={14} /> Posicionamiento de Marca
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <TagInput
-                                        label="Tono de Voz"
-                                        tags={profile.brand_positioning.tone}
-                                        onUpdate={tags => updateProfile({ brand_positioning: { ...profile.brand_positioning, tone: tags } })}
-                                        placeholder="Escribe y presiona Enter..."
-                                    />
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 ml-1">Tono de Voz</label>
+                                        <textarea
+                                            className="w-full h-32 rounded-2xl border border-border/50 bg-background/30 px-4 py-3 text-sm font-bold focus:border-primary outline-none transition-all resize-none placeholder:font-medium placeholder:text-foreground/20"
+                                            placeholder="Describe el tono de voz (Ej: Cercano, técnico, aspiracional...)"
+                                            value={profile.brand_positioning.tone}
+                                            onChange={e => updateBrandPositioning({ tone: e.target.value })}
+                                        />
+                                    </div>
                                     <TagInput
                                         label="Colores de Identidad"
                                         tags={profile.brand_positioning.colors}
-                                        onUpdate={tags => updateProfile({ brand_positioning: { ...profile.brand_positioning, colors: tags } })}
+                                        onUpdate={tags => updateBrandPositioning({ colors: tags })}
                                         placeholder="Ej: Azul #003366..."
                                     />
                                 </div>
@@ -635,7 +702,7 @@ Sé objetivo, técnico y directo. Evita introducciones innecesarias.`
                                     <FtxSelect
                                         label="Nivel Percibido"
                                         value={profile.brand_positioning.perceived_level.level}
-                                        onChange={val => updateProfile({ brand_positioning: { ...profile.brand_positioning, perceived_level: { ...profile.brand_positioning.perceived_level, level: val as any } } })}
+                                        onChange={val => updateBrandPositioning({ perceived_level: { level: val as any } })}
                                         options={[
                                             { label: 'Económico / Low Cost', value: 'low' },
                                             { label: 'Gama Media / Estándar', value: 'mid' },
@@ -646,7 +713,7 @@ Sé objetivo, técnico y directo. Evita introducciones innecesarias.`
                                         className="w-full rounded-2xl border border-border/50 bg-background/50 px-4 py-3 text-sm font-medium focus:border-primary outline-none transition-all"
                                         placeholder="Observaciones sobre el nivel percibido..."
                                         value={profile.brand_positioning.perceived_level.observations}
-                                        onChange={e => updateProfile({ brand_positioning: { ...profile.brand_positioning, perceived_level: { ...profile.brand_positioning.perceived_level, observations: e.target.value } } })}
+                                        onChange={e => updateBrandPositioning({ perceived_level: { observations: e.target.value } })}
                                     />
                                 </div>
                             </div>
@@ -789,7 +856,7 @@ Sé objetivo, técnico y directo. Evita introducciones innecesarias.`
                                         className="w-full h-32 rounded-2xl border-2 border-primary/10 bg-card px-5 py-4 text-sm font-bold text-foreground focus:border-primary outline-none transition-all resize-none shadow-md"
                                         placeholder="Punto de dolor clave y cómo la solución de Aura lo resuelve..."
                                         value={insights.technical_conclusion.diagnosis}
-                                        onChange={e => updateInsights({ technical_conclusion: { ...insights.technical_conclusion, diagnosis: e.target.value } })}
+                                        onChange={e => updateInsights({ technical_conclusion: { diagnosis: e.target.value } })}
                                     />
                                 </div>
 

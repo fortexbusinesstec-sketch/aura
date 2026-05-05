@@ -171,22 +171,21 @@ export default function LeadDetailPage() {
     const handlePublish = async () => {
         setIsPublishing(true)
         
-        // 1. PIN Persistence: Generate if empty
-        if (!opp.client?.pin_code) {
-            const newPin = Math.floor(1000 + Math.random() * 9000).toString()
-            updateClientInfo({ pin_code: newPin })
-            // Save immediately to clients table
-            await saveClientToSupabase()
-        }
-
-        // 2. Deploy opportunity
-        updateCurrentOpportunity({ status: 'quoted', updated_at: new Date().toISOString() } as any)
+        // 1. Asegurar que la oportunidad tenga portal_token y pin_code
+        // El portal_token se genera automáticamente por la BD (gen_random_uuid)
+        // El pin_code se genera automáticamente en saveToSupabase si está vacío
+        
+        // 2. Publicar oportunidad → status 'published'
+        updateCurrentOpportunity({ 
+            status: 'published', 
+            updated_at: new Date().toISOString() 
+        } as any)
         await saveToSupabase(true)
         
         setIsPublishing(false)
     }
 
-    const isPublished = opp.status === 'quoted' || opp.status === 'approved' || opp.status === 'won' || opp.status === 'converted'
+    const isPublished = opp.status === 'published' || opp.status === 'approved' || opp.status === 'won' || opp.status === 'converted'
 
     const toggleSection = (section: string) => {
         setOpenSection(openSection === section ? null : section)
@@ -276,21 +275,21 @@ export default function LeadDetailPage() {
                     {isPublished && (
                         <div className="p-4 rounded-xl bg-primary/5 border border-primary/20 space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
                             <div className="flex items-center justify-between">
-                                <span className="text-[10px] font-black text-primary uppercase tracking-widest">Portal del Cliente Activo</span>
-                                <div className="px-1.5 py-0.5 rounded bg-secondary/50 backdrop-blur-sm border border-border/50 flex items-center gap-1">
-                                    <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">PIN:</span>
-                                    <span className="text-[10px] font-black text-primary tracking-widest">{opp.client?.pin_code || '—'}</span>
+                                <span className="text-[10px] font-black text-primary uppercase tracking-widest opacity-80">Portal del Cliente Activo</span>
+                                <div className="px-1.5 py-0.5 rounded bg-primary/10 backdrop-blur-sm border border-primary/20 flex items-center gap-1">
+                                    <span className="text-[9px] font-black text-primary/60 uppercase tracking-widest">PIN:</span>
+                                    <span className="text-[10px] font-black text-primary tracking-widest">{opp.pin_code || '—'}</span>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
                                 <input 
                                     readOnly 
                                     className="flex-1 bg-background border border-border rounded-lg px-3 py-2 text-[10px] font-bold text-foreground outline-none focus:border-primary transition-all"
-                                    value={typeof window !== 'undefined' ? `${window.location.origin}/p/${opp.client?.portal_token}` : ''}
+                                    value={typeof window !== 'undefined' ? `${window.location.origin}/p/${opp.portal_token}` : ''}
                                 />
                                 <button 
                                     onClick={() => {
-                                        navigator.clipboard.writeText(`${window.location.origin}/p/${opp.client?.portal_token}`)
+                                        navigator.clipboard.writeText(`${window.location.origin}/p/${opp.portal_token}`)
                                     }}
                                     className="p-2 rounded-lg bg-background border border-border text-primary hover:bg-secondary transition-all active:scale-95"
                                 >
@@ -722,9 +721,9 @@ export default function LeadDetailPage() {
                     <button
                         onClick={() => saveToSupabase(true)}
                         disabled={isStoreLoading}
-                        className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary/10 hover:bg-primary/20 py-4 text-[10px] font-black uppercase tracking-widest text-primary transition-all active:scale-[0.98]"
+                        className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary hover:bg-primary/90 py-4 text-[10px] font-black uppercase tracking-widest text-primary-foreground shadow-lg shadow-primary/20 transition-all active:scale-[0.98] disabled:opacity-50"
                     >
-                        <Save size={14} /> Guardar Borrador
+                        <Save size={14} /> Guardar Cambios
                     </button>
                 </div>
             </aside>

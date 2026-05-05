@@ -4,6 +4,7 @@ import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { Opportunity, Project, ProjectPhase } from '@/types'
 import { createLinearProject, syncAllPhasesToLinear } from '@/lib/linearService'
+import { generatePinCode } from '@/lib/portalTokens'
 
 // ------------------------------------------------------------------
 // Tipos de entrada / salida
@@ -42,7 +43,7 @@ export async function getAvailableLeads(): Promise<{
     const { data, error } = await supabase
         .from('opportunities')
         .select('*, client:clients(*)')
-        .in('status', ['quoted', 'approved', 'in_progress', 'won'])
+        .in('status', ['quoted', 'published', 'approved', 'in_progress', 'won'])
         .order('created_at', { ascending: false })
 
     if (error) {
@@ -211,6 +212,7 @@ export async function createProjectFromLead(
             contract_amount: contractAmount,
             amount_paid: 0,
             amount_pending: contractAmount,
+            pin_code: generatePinCode(),
         })
         .select()
         .single()

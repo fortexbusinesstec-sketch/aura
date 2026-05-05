@@ -14,7 +14,7 @@ export interface ClientProfile {
         social: { status: 'inactive' | 'moderate' | 'high' | ''; observations: string };
     };
     brand_positioning: {
-        tone: string[];
+        tone: string;
         colors: string[];
         perceived_level: { level: 'low' | 'mid' | 'premium' | ''; observations: string };
     };
@@ -36,8 +36,8 @@ export interface Client {
     ruc?: string
     persona_contacto?: string
     email?: string
-    portal_token: string
-    pin_code: string | null
+    portal_token?: string
+    pin_code?: string | null
     client_profile_jsonb?: ClientProfile
     client_insights_jsonb?: ClientInsights
     created_at: string
@@ -76,7 +76,7 @@ export type NewClient = Omit<Client, 'id' | 'created_at' | 'portal_token' | 'pin
 export type NewCatalogItem = Omit<CatalogItem, 'id' | 'created_at'>
 
 export type OpportunityDimension = 'landing' | 'website' | 'webapp' | 'mobileapp'
-export type OpportunityStatus = 'discovery' | 'proposal' | 'quoted' | 'approved' | 'in_progress' | 'won' | 'lost' | 'converted'
+export type OpportunityStatus = 'draft' | 'discovery' | 'proposal' | 'published' | 'approved' | 'in_progress' | 'won' | 'lost' | 'converted'
 
 export interface PitchBlock {
     id: string
@@ -151,6 +151,7 @@ export interface Opportunity {
     financials_jsonb?: FinancialsData
     is_deployed?: boolean
     portal_token?: string
+    pin_code?: string | null
     phase_template_id?: string | null
     phases_plan_jsonb?: Array<{
         phase_key: string
@@ -253,6 +254,8 @@ export interface Project {
     amount_paid?: number | null;
     amount_pending?: number | null;
     staging_url?: string | null;
+    portal_token?: string;
+    pin_code?: string | null;
     created_at: string;
     updated_at: string;
 }
@@ -426,4 +429,61 @@ export interface ProjectService {
     actions_jsonb: ServiceAction[];
     created_at: string;
     updated_at: string;
+}
+
+
+// --- THEME SYSTEM TYPES ---
+
+export interface HslValues {
+    background: string
+    foreground: string
+    card: string
+    'card-foreground': string
+    popover: string
+    'popover-foreground': string
+    primary: string
+    'primary-foreground': string
+    secondary: string
+    'secondary-foreground': string
+    muted: string
+    'muted-foreground': string
+    accent: string
+    'accent-foreground': string
+    destructive: string
+    'destructive-foreground': string
+    success: string
+    'success-foreground': string
+    warning: string
+    'warning-foreground': string
+    border: string
+    input: string
+    ring: string
+    radius: string
+    [key: string]: string
+}
+
+export interface Theme {
+    id: string
+    name: string
+    slug: string
+    description: string | null
+    hsl_values: HslValues
+    is_default: boolean
+    is_active: boolean
+    created_at: string
+}
+
+export interface ClientTheme {
+    id: string
+    client_id: string
+    base_theme_id: string | null
+    custom_hsl_overrides: Partial<HslValues>
+    logo_url: string | null
+    favicon_url: string | null
+    font_heading: string
+    font_body: string
+    is_active: boolean
+    created_at: string
+    updated_at: string
+    base_theme?: Theme | null
 }

@@ -2,21 +2,68 @@
 
 import { useEffect } from 'react'
 import { THEMES, type ThemeId } from '@/lib/themes'
+import { createClient } from '@/utils/supabase/client'
 
 export type { ThemeId }
 export { THEMES }
 
 /**
- * Monta el tema en el cliente para transiciones sin flash.
- * Se renderiza en el root layout como boundary de cliente.
+ * ═══════════════════════════════════════════════════════════════
+ *  AURA OS — ThemeProvider (Legacy + Dynamic)
+ *  Monta el tema en el cliente para transiciones sin flash.
+ *  Compatible con:
+ *  1. Temas estáticos (warm, midnight, ocean, forest, custom)
+ *  2. Temas importados desde CSS (localStorage)
+ *  3. Temas dinámicos desde Supabase (nuevo)
+ * ═══════════════════════════════════════════════════════════════
  */
+
 export function ThemeProvider({ initialTheme }: { initialTheme: string }) {
     useEffect(() => {
-        // Aplicar al montar
-        applyTheme(initialTheme)
-        
-        // Opcional: Escuchar cambios de storage por si el usuario 
-        // tiene dos pestañas abiertas y cambia el tema en una
+        const apply = async () => {
+            const html = document.documentElement
+            const supabase = createClient()
+
+            // 1. Intentar cargar tema del usuario desde Supabase
+            try {
+                const { data: { user } } = await supabase.auth.getUser()
+                if (user) {
+                    const { data: profile } = await supabase
+                        .from('profiles')
+                        .select('preferred_theme_slug')
+                        .eq('id', user.id)
+                        .maybeSingle()
+
+                    if (profile?.preferred_theme_slug) {
+                        const { data: theme } = await supabase
+                            .from('themes')
+                            .select('hsl_values')
+                            .eq('slug', profile.preferred_theme_slug)
+                            .eq('is_active', true)
+                            .maybeSingle()
+
+                        if (theme?.hsl_values) {
+                            // Limpiar clases de temas estáticos
+                            THEMES.forEach(t => t.className && html.classList.remove(t.className))
+                            // Inyectar variables HSL
+                            Object.entries(theme.hsl_values).forEach(([k, v]) => {
+                                html.style.setProperty(`--${k}`, String(v))
+                            })
+                            return // Tema dinámico aplicado, no seguir
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error('[ThemeProvider] Error cargando tema dinámico:', err)
+            }
+
+            // 2. Fallback: aplicar tema legacy (estático o importado)
+            applyTheme(initialTheme)
+        }
+
+        apply()
+
+        // Escuchar cambios de storage por si el usuario cambia tema en otra pestaña
         const handleStorage = (e: StorageEvent) => {
             if (e.key === 'aura-theme' || e.key === 'aura-imported-themes') {
                 const match = document.cookie.match(/aura-theme=([^;]+)/)
@@ -31,7 +78,9 @@ export function ThemeProvider({ initialTheme }: { initialTheme: string }) {
 }
 
 /**
- * Aplica la clase de tema al elemento <html>.
+ * Aplica la clase de tema al elemento <html> (modo legacy).
+ * NO borra las variables CSS inyectadas por el server;
+ * solo las sobreescribe si es un tema estático o custom.
  */
 export function applyTheme(themeId: string) {
     const html = document.documentElement
@@ -43,9 +92,8 @@ export function applyTheme(themeId: string) {
     const importedThemes = getImportedThemes()
     const importedTheme = importedThemes.find(t => t.id === themeId)
 
-    // Limpiar todo antes de aplicar
+    // Limpiar clases de temas estáticos
     THEMES.forEach(t => t.className && html.classList.remove(t.className))
-    html.removeAttribute('style')
 
     if (staticTheme) {
         if (staticTheme.className) html.classList.add(staticTheme.className)
@@ -142,10 +190,5 @@ export function updateCustomColor(key: string, value: string) {
 
     // Aplicar al instante si estamos en modo custom
     const html = document.documentElement
-    const isActive = html.classList.contains('aura-custom-theme') || 
-                   (!THEMES.some(t => t.className && html.classList.contains(t.className)) && !getImportedThemes().some(t => html.style.getPropertyValue(`--${Object.keys(t.colors)[0]}`)))
-
-    // Para simplificar, si estamos editando, aplicamos directamente al style
     html.style.setProperty(`--${key}`, value)
 }
-

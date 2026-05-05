@@ -60,6 +60,7 @@ interface Props {
     activeTab?: TabId
     onTabChange?: (tab: TabId) => void
     hideHeader?: boolean
+    onApproveProposal?: () => void
 }
 
 export type TabId = 'resumen' | 'inteligencia' | 'estrategia' | 'tecnica' | 'inversion' | 'roadmap'
@@ -179,6 +180,7 @@ const formatCurrency = (val: number) =>
 const statusConfig: Record<string, { label: string; bg: string; text: string; border: string }> = {
     discovery: { label: 'En Discovery', bg: 'bg-primary/15', text: 'text-primary', border: 'border-primary/30' },
     quoted: { label: 'Propuesta Enviada', bg: 'bg-emerald-500/15', text: 'text-emerald-500', border: 'border-emerald-500/30' },
+    published: { label: 'Publicado', bg: 'bg-success/15', text: 'text-success-foreground', border: 'border-success/30' },
     won: { label: 'Aprobado', bg: 'bg-emerald-500/20', text: 'text-emerald-500', border: 'border-emerald-500/40' },
     lost: { label: 'Cerrado', bg: 'bg-destructive/15', text: 'text-destructive', border: 'border-destructive/30' }
 }
@@ -212,7 +214,7 @@ const scoreLabel = (score: number) => {
    SUB-COMPONENTES
    ═══════════════════════════════════════════════════════════════ */
 
-function DashboardHeader({ opp, client, status }: { opp: any; client: any; status: string }) {
+function DashboardHeader({ opp, client, status, onApprove }: { opp: any; client: any; status: string; onApprove?: () => void }) {
     const cfg = statusConfig[status] || statusConfig.discovery
     const razonSocial = client?.razon_social || FALLBACK_CLIENT.razon_social
     const ruc = client?.ruc || FALLBACK_CLIENT.ruc
@@ -248,7 +250,10 @@ function DashboardHeader({ opp, client, status }: { opp: any; client: any; statu
                         <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-[10px] font-black uppercase tracking-wider text-muted-foreground hover:bg-secondary transition-colors">
                             <Download size={12} /> PDF
                         </button>
-                        <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary/20 text-primary border border-primary/30 text-[10px] font-black uppercase tracking-wider hover:bg-primary/30 transition-colors">
+                        <button 
+                            onClick={onApprove}
+                            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary/20 text-primary border border-primary/30 text-[10px] font-black uppercase tracking-wider hover:bg-primary/30 transition-colors"
+                        >
                             <CheckCircle2 size={12} /> Aprobar
                         </button>
                         <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-foreground text-background text-[10px] font-black uppercase tracking-wider hover:bg-foreground/80 transition-colors">
@@ -668,9 +673,13 @@ function TabPropuestaTecnica({ opp, catalog, phases: realPhases = [] }: { opp: a
     const modules = draft?.selectedModules?.length > 0
         ? draft.selectedModules.map((sm: any) => {
             const item = catalog.find((c: CatalogItem) => c.id === sm.id)
-            return { name: item?.name || sm.comment || 'Módulo', active: true }
+            return { 
+                name: item?.name || sm.comment || 'Módulo', 
+                active: true,
+                price: item?.base_price_pen || 0
+            }
         })
-        : FALLBACK_OPPORTUNITY.modules
+        : FALLBACK_OPPORTUNITY.modules.map(m => ({ ...m, price: 0 }))
 
     // DATA_API: opp.not_included
     const exclusions = opp.not_included
@@ -719,8 +728,14 @@ function TabPropuestaTecnica({ opp, catalog, phases: realPhases = [] }: { opp: a
                     <div className="space-y-2">
                         {modules.map((m: any, i: number) => (
                             <div key={i} className="flex items-center justify-between py-2 border-b border-border/20 last:border-0">
-                                <span className="text-xs font-bold text-foreground/80">{m.name}</span>
-                                {m.active && <CheckCircle2 size={14} className="text-emerald-500" />}
+                                <div>
+                                    <p className="text-xs font-bold text-foreground/80">{m.name}</p>
+                                    {m.price > 0 && <p className="text-[9px] text-muted-foreground/60 font-mono">Inversión única</p>}
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    {m.price > 0 && <span className="text-[11px] font-black text-foreground/70">{formatCurrency(m.price)}</span>}
+                                    {m.active && <CheckCircle2 size={14} className="text-emerald-500" />}
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -833,8 +848,9 @@ function TabInversion({ opp, catalog }: { opp: any; catalog: any[] }) {
     )
     const domainPrice = domainItem?.base_price_pen || 40
 
-    const displayInfraCapex = infraCapex > 0 ? infraCapex : (model === 'external' ? domainPrice : 0)
-    const displayTotalCapex = totalCapex + (infraCapex === 0 && model === 'external' ? domainPrice : 0)
+    // Si es externo, el dominio se paga aparte y no entra en el CAPEX de desarrollo
+    const displayInfraCapex = infraCapex > 0 ? infraCapex : 0
+    const displayTotalCapex = softwareCapex + displayInfraCapex
 
 
     const discountPct = opp.discount_applied || 0
@@ -890,37 +906,58 @@ function TabInversion({ opp, catalog }: { opp: any; catalog: any[] }) {
                     </div>
 
                     <div className="space-y-4">
-                        {/* Desarrollo */}
-                        <div className="flex items-center justify-between py-2 border-b border-border/20">
-                            <div>
-                                <p className="text-[10px] font-black uppercase text-foreground/90">Desarrollo de Software</p>
-                                <p className="text-[9px] font-medium text-muted-foreground/60">Implementación de módulos Aura OS y lógica de negocio.</p>
-                            </div>
-                            <span className="text-sm font-black text-foreground">{formatCurrency(softwareCapex)}</span>
-                        </div>
+                        {/* Listado Detallado de Bloques y Módulos */}
+                        {(() => {
+                            const blocks = draft?.blocks?.map((b: any, i: number) => {
+                                const item = catalog?.find((c: any) => c.id === (opp.dimension === 'landing' ? b.complexity_id : b.catalog_item_id))
+                                return { name: b.name || `Bloque ${i+1}`, price: item?.base_price_pen || 0, type: 'Bloque' }
+                            }) || []
+                            
+                            const modules = draft?.selectedModules?.map((sm: any) => {
+                                const item = catalog?.find((c: any) => c.id === sm.id)
+                                return { name: item?.name || 'Módulo', price: item?.base_price_pen || 0, type: 'Módulo' }
+                            }) || []
 
-                        {/* Infraestructura / Dominio */}
-                        {displayInfraCapex > 0 && (
+                            const allItems = [...blocks, ...modules]
+
+                            if (allItems.length === 0) {
+                                return (
+                                    <div className="flex items-center justify-between py-2 border-b border-border/20">
+                                        <div>
+                                            <p className="text-[10px] font-black uppercase text-foreground/90">Desarrollo de Software</p>
+                                            <p className="text-[9px] font-medium text-muted-foreground/60">Implementación de módulos Aura OS y lógica de negocio.</p>
+                                        </div>
+                                        <span className="text-sm font-black text-foreground">{formatCurrency(softwareCapex)}</span>
+                                    </div>
+                                )
+                            }
+
+                            return allItems.map((item, idx) => (
+                                <div key={idx} className="flex items-center justify-between py-2 border-b border-border/20 last:border-0">
+                                    <div>
+                                        <p className="text-[10px] font-black uppercase text-foreground/90">{item.name}</p>
+                                        <p className="text-[8px] font-bold text-muted-foreground/40 uppercase tracking-widest">{item.type}</p>
+                                    </div>
+                                    <span className="text-[11px] font-black text-foreground">{formatCurrency(item.price)}</span>
+                                </div>
+                            ))
+                        })()}
+
+                        {/* Infraestructura (Solo si no es external o si hay costos de aprovisionamiento) */}
+                        {infraCapex > 0 && (
                             <div className="flex items-center justify-between py-2 border-b border-border/20">
                                 <div>
-                                    <p className="text-[10px] font-black uppercase text-foreground/90">
-                                        {model === 'external' ? 'Gestión de Dominio Anual' : 'Infraestructura & Servidor'}
-                                    </p>
-                                    <p className="text-[9px] font-medium text-muted-foreground/60">
-                                        {model === 'external' ? 'Reserva y configuración de dominio corporativo.' : 'Aprovisionamiento de infraestructura optimizada.'}
-                                    </p>
+                                    <p className="text-[10px] font-black uppercase text-foreground/90">Infraestructura & Servidor</p>
+                                    <p className="text-[9px] font-medium text-muted-foreground/60">Aprovisionamiento de infraestructura optimizada.</p>
                                 </div>
                                 <div className="text-right">
-                                    <span className="text-sm font-black text-foreground">{formatCurrency(displayInfraCapex)}</span>
-                                    <p className="text-[8px] font-bold text-muted-foreground/40 uppercase tracking-tighter">
-                                        {model === 'external' ? 'Renovación Anual' : 'Pago Inicial'}
-                                    </p>
+                                    <span className="text-sm font-black text-foreground">{formatCurrency(infraCapex)}</span>
+                                    <p className="text-[8px] font-bold text-muted-foreground/40 uppercase tracking-tighter">Pago Inicial</p>
                                 </div>
                             </div>
                         )}
 
-
-                        <div className="space-y-2 pt-2">
+                        <div className="space-y-2 pt-4">
                             <div className="flex justify-between items-center text-[10px] font-black text-muted-foreground/60 uppercase tracking-wider">
                                 <span>Subtotal</span>
                                 <span>{formatCurrency(displayTotalCapex)}</span>
@@ -944,7 +981,7 @@ function TabInversion({ opp, catalog }: { opp: any; catalog: any[] }) {
                                 <span className="text-[10px] font-black text-foreground uppercase tracking-widest block">Inversión Final</span>
                                 <span className="text-[8px] font-bold text-muted-foreground/40 uppercase">Incluye garantía técnica</span>
                             </div>
-                            <span className="text-2xl font-black text-foreground tracking-tighter italic">{formatCurrency(finalTotal)}</span>
+                            <span className="text-2xl font-black text-primary tracking-tighter italic">{formatCurrency(finalTotal)}</span>
                         </div>
                     </div>
                 </div>
@@ -1203,7 +1240,7 @@ function TabRoadmap({ opp, realPhases, hasRealPhases }: { opp: any, realPhases: 
    COMPONENTE PRINCIPAL
    ═══════════════════════════════════════════════════════════════ */
 
-export function ClientPortalView({ opportunity, client, catalog, phases: phasesProp, mode = 'desktop', activeTab: externalTab, onTabChange, hideHeader = false }: Props) {
+export function ClientPortalView({ opportunity, client, catalog, phases: phasesProp, mode = 'desktop', activeTab: externalTab, onTabChange, hideHeader = false, onApproveProposal }: Props) {
     const [internalTab, setInternalTab] = useState<TabId>('resumen')
     
     const activeTab = externalTab || internalTab
@@ -1240,7 +1277,7 @@ export function ClientPortalView({ opportunity, client, catalog, phases: phasesP
             )}
 
             {/* Header Sticky del Portal (solo si no se oculta) */}
-            {!hideHeader && <DashboardHeader opp={opp} client={client} status={status} />}
+            {!hideHeader && <DashboardHeader opp={opp} client={client} status={status} onApprove={onApproveProposal} />}
 
             {/* Navegación por Tabs */}
             <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />

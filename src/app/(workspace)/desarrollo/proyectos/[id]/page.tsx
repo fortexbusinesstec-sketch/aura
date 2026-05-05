@@ -222,7 +222,10 @@ export default function ProjectDetailPage() {
                             <FilesTab phases={project.phases || []} />
                         )}
                         {activeTab === 'portal' && (
-                            <PortalTab portalToken={project.client?.portal_token || null} />
+                            <PortalTab 
+                                portalToken={project.portal_token || project.client?.portal_token || null} 
+                                pinCode={project.pin_code || project.client?.pin_code || null}
+                            />
                         )}
                     </div>
                 </div>
@@ -242,7 +245,7 @@ export default function ProjectDetailPage() {
                         client={project.client}
                         leadDev={project.lead_dev}
                         projectManager={project.project_manager}
-                        portalToken={project.client?.portal_token || null}
+                        portalToken={project.portal_token || project.client?.portal_token || null}
                     />
                 </div>
             </div>

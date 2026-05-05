@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { Client, CatalogItem, Opportunity, PitchDraft, OpportunityDimension, PitchBlock, SelectedModule, DiscoveryData, StrategyData, FinancialsData } from '@/types'
 import { createClient } from '@/utils/supabase/client'
+import { generatePinCode } from '@/lib/portalTokens'
 
 interface PitchState {
     clients: Client[]
@@ -525,7 +526,9 @@ export const usePitchStore = create<PitchState>((set, get) => ({
 
         const saveData = {
             ...rawData,
-            updated_at: new Date().toISOString()
+            updated_at: new Date().toISOString(),
+            // Si es nueva oportunidad y no tiene pin_code, generarlo automáticamente
+            pin_code: rawData.pin_code || generatePinCode(),
         }
 
         const { data, error } = await supabase
