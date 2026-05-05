@@ -702,7 +702,12 @@ Sé objetivo, técnico y directo. Evita introducciones innecesarias.`
                                     <FtxSelect
                                         label="Nivel Percibido"
                                         value={profile.brand_positioning.perceived_level.level}
-                                        onChange={val => updateBrandPositioning({ perceived_level: { level: val as any } })}
+                                        onChange={val => updateBrandPositioning({ 
+                                            perceived_level: { 
+                                                ...profile.brand_positioning.perceived_level,
+                                                level: val as any 
+                                            } 
+                                        })}
                                         options={[
                                             { label: 'Económico / Low Cost', value: 'low' },
                                             { label: 'Gama Media / Estándar', value: 'mid' },
@@ -713,7 +718,12 @@ Sé objetivo, técnico y directo. Evita introducciones innecesarias.`
                                         className="w-full rounded-2xl border border-border/50 bg-background/50 px-4 py-3 text-sm font-medium focus:border-primary outline-none transition-all"
                                         placeholder="Observaciones sobre el nivel percibido..."
                                         value={profile.brand_positioning.perceived_level.observations}
-                                        onChange={e => updateBrandPositioning({ perceived_level: { observations: e.target.value } })}
+                                        onChange={e => updateBrandPositioning({ 
+                                            perceived_level: { 
+                                                ...profile.brand_positioning.perceived_level,
+                                                observations: e.target.value 
+                                            } 
+                                        })}
                                     />
                                 </div>
                             </div>
