@@ -756,7 +756,12 @@ Sé objetivo, técnico y directo. Evita introducciones innecesarias.`
                                     className="w-full h-32 rounded-2xl border border-border/50 bg-card px-4 py-3 text-sm focus:border-primary outline-none transition-all resize-none shadow-sm font-medium"
                                     placeholder="Hallazgo clave del ecosistema del cliente..."
                                     value={insights.initial_observations.key_finding}
-                                    onChange={e => updateInsights({ initial_observations: { key_finding: e.target.value } })}
+                                    onChange={e => updateInsights({ 
+                                        initial_observations: { 
+                                            ...insights.initial_observations,
+                                            key_finding: e.target.value 
+                                        } 
+                                    })}
                                 />
                             </div>
 
@@ -866,7 +871,12 @@ Sé objetivo, técnico y directo. Evita introducciones innecesarias.`
                                         className="w-full h-32 rounded-2xl border-2 border-primary/10 bg-card px-5 py-4 text-sm font-bold text-foreground focus:border-primary outline-none transition-all resize-none shadow-md"
                                         placeholder="Punto de dolor clave y cómo la solución de Aura lo resuelve..."
                                         value={insights.technical_conclusion.diagnosis}
-                                        onChange={e => updateInsights({ technical_conclusion: { diagnosis: e.target.value } })}
+                                        onChange={e => updateInsights({ 
+                                            technical_conclusion: { 
+                                                ...insights.technical_conclusion,
+                                                diagnosis: e.target.value 
+                                            } 
+                                        })}
                                     />
                                 </div>
 
