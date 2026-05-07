@@ -555,6 +555,25 @@ export default function LeadDetailPage() {
                                         />
                                     </div>
 
+                                    <div className="flex items-center gap-3 p-3 rounded-xl bg-primary/5 border border-primary/20">
+                                        <div className="flex items-center h-5">
+                                            <input
+                                                id="include_igv"
+                                                type="checkbox"
+                                                className="w-4 h-4 rounded border-border text-primary focus:ring-primary bg-background"
+                                                checked={opp.financials_jsonb?.include_igv ?? true}
+                                                onChange={e => {
+                                                    handleJsonbChange('financials_jsonb', 'include_igv', e.target.checked)
+                                                    // Trigger recalculation
+                                                    setTimeout(() => usePitchStore.getState().calculateTotal(), 0)
+                                                }}
+                                            />
+                                        </div>
+                                        <label htmlFor="include_igv" className="text-[10px] font-black uppercase tracking-widest text-primary/80 cursor-pointer select-none">
+                                            Incluir IGV (18%) en el total calculado
+                                        </label>
+                                    </div>
+
                                     <div className="h-px bg-border/50 my-2" />
 
                                     {/* Bloques del proyecto */}
@@ -595,9 +614,17 @@ export default function LeadDetailPage() {
                                         </div>
                                         <div className="h-px bg-border/50" />
                                         <div className="flex justify-between text-[10px]">
-                                            <span className="text-foreground font-black uppercase tracking-widest">Total S/ IGV</span>
+                                            <span className="text-foreground font-black uppercase tracking-widest">
+                                                Total {(opp.financials_jsonb?.include_igv ?? true) ? 'C/ IGV' : 'S/ IGV'}
+                                            </span>
                                             <span className="font-black text-primary text-sm italic">S/ {opp.draft_jsonb?.totalCalculated?.toLocaleString() || '0'}</span>
                                         </div>
+                                    </div>
+
+                                    <div className="p-4 rounded-xl bg-secondary/30 border border-border/30">
+                                        <p className="text-[10px] font-medium text-muted-foreground leading-relaxed italic">
+                                            Trabajamos bajo el régimen simplificado de persona natural con negocio (RUS), que nos permite ofrecerte precios competitivos sin la carga operativa de una empresa formal. Mi RUC está activo y emitimos comprobantes de pago válidos para SUNAT.
+                                        </p>
                                     </div>
                                 </div>
                             </Accordion>

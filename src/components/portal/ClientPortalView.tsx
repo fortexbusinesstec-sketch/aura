@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Opportunity, CatalogItem } from '@/types'
+import { Opportunity, CatalogItem, PitchBlock, SelectedModule, Client, FinancialsData } from '@/types'
 import {
     Zap,
     Building2,
@@ -304,14 +304,58 @@ function TabNavigation({ activeTab, onTabChange }: { activeTab: TabId; onTabChan
 
 /* ─────────── TAB 1: RESUMEN EJECUTIVO ─────────── */
 
-function TabResumenEjecutivo({ opp, client, phases: phasesProp }: { opp: any; client: any; phases: any[] }) {
+function TabResumenEjecutivo({ opp, client, phases: phasesProp, catalog }: { opp: Opportunity; client: Client; phases: any[]; catalog?: CatalogItem[] }) {
     const phases = phasesProp && phasesProp.length > 0 ? phasesProp : PHASES
-    // DATA_API: opp.draft_jsonb.totalCalculated, opp.delivery_time_text, opp.revision_rounds, opp.dimension
-    const investment = opp.draft_jsonb?.totalCalculated || FALLBACK_OPPORTUNITY.investment
+    const draft = opp.draft_jsonb || {}
+    
+    // Calcular el CAPEX bruto desde el catálogo para evitar errores de doble descuento
+    const calculateGrossCapex = () => {
+        let subtotal = 0
+        const blocks = draft.blocks || []
+        const modules = draft.selectedModules || []
+        const infraIds = draft.selectedInfrastructureIds || []
+
+        if (!catalog || (blocks.length === 0 && modules.length === 0)) return draft.totalCapex || 0
+
+        blocks.forEach((block: PitchBlock) => {
+            const itemId = (opp.dimension === 'landing' ? block.complexity_id : block.catalog_item_id)
+            const item = catalog.find(i => i.id === itemId)
+            if (item) subtotal += item.base_price_pen
+        })
+
+        modules.forEach((sm: SelectedModule) => {
+            const item = catalog.find(i => i.id === sm.id)
+            if (item) subtotal += item.base_price_pen
+        })
+
+        infraIds.forEach((id: string) => {
+            const item = catalog.find(i => i.id === id)
+            if (item && item.category !== 'hosting_internal') {
+                subtotal += item.base_price_pen
+            }
+        })
+
+        return subtotal
+    }
+
+    const investmentBase = calculateGrossCapex()
+    const discountPct = opp.discount_applied || 0
+    const discountAmount = Math.round(investmentBase * discountPct / 100)
+    const subtotal = investmentBase - discountAmount
+    const includeIgv = opp.financials_jsonb?.include_igv ?? true
+    const igv = includeIgv ? Math.round(subtotal * 0.18) : 0
+    const finalInvestment = finalInvestmentCalculated(subtotal, igv, investmentBase)
+    
+    function finalInvestmentCalculated(sub: number, i: number, base: number) {
+        if (base === 0) return FALLBACK_OPPORTUNITY.investment
+        return sub + i
+    }
+
     const timeline = opp.delivery_time_text || FALLBACK_OPPORTUNITY.timeline
     const revisions = opp.revision_rounds || FALLBACK_OPPORTUNITY.revision_rounds
     const dimension = opp.dimension || FALLBACK_OPPORTUNITY.dimension
     const dimensionLabel = dimension === 'landing' ? 'Landing Page' : dimension === 'website' ? 'Website' : 'Web App'
+    const investmentLabel = includeIgv ? 'Inversión (con IGV)' : 'Inversión (sin IGV)'
 
     // DATA_API: client.client_profile_jsonb.value_proposition, target_market, industry, business_model
     const profile = client?.client_profile_jsonb
@@ -326,7 +370,7 @@ function TabResumenEjecutivo({ opp, client, phases: phasesProp }: { opp: any; cl
 
     const blockCount = opp.draft_jsonb?.blocks?.length || 0
     const kpis = [
-        { label: 'Inversión Propuesta', value: formatCurrency(investment), icon: CreditCard, color: 'text-foreground' },
+        { label: investmentLabel, value: formatCurrency(finalInvestment), icon: CreditCard, color: 'text-foreground' },
         { label: 'Tipo de Proyecto', value: `${dimensionLabel} (${blockCount} bloques)`, icon: Layers, color: 'text-foreground' }
     ]
 
@@ -392,12 +436,12 @@ function TabResumenEjecutivo({ opp, client, phases: phasesProp }: { opp: any; cl
                     {phases.map((phase, i) => (
                         <div key={phase.id || phase.phase_key || i} className="flex-1 flex flex-col items-center gap-2">
                             <div className={`w-full h-2 rounded-full transition-all ${
-                                phase.status === 'completed' || phase.status === 'approved' ? 'bg-emerald-500' :
-                                phase.status === 'in_progress' || phase.status === 'in_review' ? 'bg-primary' : 'bg-secondary'
+                                (phase.status === 'completed' || phase.status === 'approved' || phase.completed) ? 'bg-emerald-500' :
+                                (phase.status === 'in_progress' || phase.status === 'in_review' || phase.active) ? 'bg-primary' : 'bg-secondary'
                             }`} />
                             <span className={`text-[9px] font-black uppercase tracking-wider text-center ${
-                                phase.status === 'in_progress' || phase.status === 'in_review' ? 'text-primary' :
-                                phase.status === 'completed' || phase.status === 'approved' ? 'text-emerald-500' : 'text-muted-foreground/40'
+                                (phase.status === 'in_progress' || phase.status === 'in_review' || phase.active) ? 'text-primary' :
+                                (phase.status === 'completed' || phase.status === 'approved' || phase.completed) ? 'text-emerald-500' : 'text-muted-foreground/40'
                             }`}>
                                 {phase.phase_name || phase.label}
                             </span>
@@ -832,14 +876,44 @@ function TabPropuestaTecnica({ opp, catalog, phases: realPhases = [] }: { opp: a
 
 /* ─────────── TAB 5: INVERSIÓN ─────────── */
 
-function TabInversion({ opp, catalog }: { opp: any; catalog: any[] }) {
+function TabInversion({ opp, catalog }: { opp: Opportunity; catalog: CatalogItem[] }) {
     // DATA_API: opp.draft_jsonb totalCapex (desarrollo), totalOpex (suscripción), discount_applied
     const draft = opp.draft_jsonb
     const model = draft?.infrastructureModel || 'internal'
-    const totalCapex = draft?.totalCapex || FALLBACK_OPPORTUNITY.totalCapex
-    const infraCapex = draft?.totalInfraCapex || 0
-    const softwareCapex = totalCapex - infraCapex
+    
+    // Calcular el CAPEX bruto desde el catálogo para evitar errores de doble descuento
+    const calculateGrossCapex = () => {
+        let subtotal = 0
+        const blocks = draft?.blocks || []
+        const modules = draft?.selectedModules || []
+        const infraIds = draft?.selectedInfrastructureIds || []
 
+        if (!catalog || (blocks.length === 0 && modules.length === 0)) return draft?.totalCapex || 0
+
+        blocks.forEach((block: PitchBlock) => {
+            const itemId = (opp.dimension === 'landing' ? block.complexity_id : block.catalog_item_id)
+            const item = catalog.find(i => i.id === itemId)
+            if (item) subtotal += item.base_price_pen
+        })
+
+        modules.forEach((sm: SelectedModule) => {
+            const item = catalog.find(i => i.id === sm.id)
+            if (item) subtotal += item.base_price_pen
+        })
+
+        infraIds.forEach((id: string) => {
+            const item = catalog.find(i => i.id === id)
+            if (item && item.category !== 'hosting_internal') {
+                subtotal += item.base_price_pen
+            }
+        })
+
+        return subtotal
+    }
+
+    const displayTotalCapex = calculateGrossCapex()
+    const infraCapex = draft?.totalInfraCapex || 0
+    const softwareCapex = displayTotalCapex - infraCapex
     const opex = model === 'internal' ? (draft?.totalOpex || 0) : 0
     const domainItem = catalog?.find(item => 
         item.category === 'domain' || 
@@ -848,18 +922,14 @@ function TabInversion({ opp, catalog }: { opp: any; catalog: any[] }) {
     )
     const domainPrice = domainItem?.base_price_pen || 40
 
-    // Si es externo, el dominio se paga aparte y no entra en el CAPEX de desarrollo
-    const displayInfraCapex = infraCapex > 0 ? infraCapex : 0
-    const displayTotalCapex = softwareCapex + displayInfraCapex
-
-
     const discountPct = opp.discount_applied || 0
     const discountAmount = Math.round(displayTotalCapex * discountPct / 100)
     const subtotal = displayTotalCapex - discountAmount
-    const igv = Math.round(subtotal * 0.18)
+    const includeIgv = opp.financials_jsonb?.include_igv ?? true
+    const igv = includeIgv ? Math.round(subtotal * 0.18) : 0
     const finalTotal = subtotal + igv
 
-    const fin = opp.financials_jsonb || {}
+    const fin = (opp.financials_jsonb || {}) as FinancialsData
     const roi = fin.roi_estimate || FALLBACK_OPPORTUNITY.roi_estimate
     const revenue = fin.revenue_potential || FALLBACK_OPPORTUNITY.revenue_potential
     const terms = fin.payment_terms || FALLBACK_OPPORTUNITY.payment_terms
@@ -876,7 +946,9 @@ function TabInversion({ opp, catalog }: { opp: any; catalog: any[] }) {
                             <span className="text-5xl font-black text-foreground tracking-tighter">
                                 {formatCurrency(finalTotal)}
                             </span>
-                            <span className="text-sm font-bold text-muted-foreground/60 uppercase tracking-widest">S/ IGV</span>
+                            <span className="text-sm font-bold text-muted-foreground/60 uppercase tracking-widest">
+                                {includeIgv ? 'C/ IGV' : 'S/ IGV'}
+                            </span>
                         </div>
                         <p className="text-[10px] font-bold text-muted-foreground/60 mt-2 uppercase tracking-widest">Pago único por concepto de desarrollo e infraestructura inicial</p>
                     </div>
@@ -968,10 +1040,12 @@ function TabInversion({ opp, catalog }: { opp: any; catalog: any[] }) {
                                     <span>- {formatCurrency(discountAmount)}</span>
                                 </div>
                             )}
-                            <div className="flex justify-between items-center text-[10px] font-black text-muted-foreground/60 uppercase tracking-wider">
-                                <span>IGV (18%)</span>
-                                <span>{formatCurrency(igv)}</span>
-                            </div>
+                            {includeIgv && (
+                                <div className="flex justify-between items-center text-[10px] font-black text-muted-foreground/60 uppercase tracking-wider">
+                                    <span>IGV (18%)</span>
+                                    <span>{formatCurrency(igv)}</span>
+                                </div>
+                            )}
                         </div>
 
                         <div className="h-px bg-border/20 my-2" />
@@ -984,21 +1058,23 @@ function TabInversion({ opp, catalog }: { opp: any; catalog: any[] }) {
                             <span className="text-2xl font-black text-primary tracking-tighter italic">{formatCurrency(finalTotal)}</span>
                         </div>
                     </div>
+
+                    <div className="p-5 rounded-2xl bg-secondary/30 border border-border/30">
+                        <p className="text-[11px] font-medium text-muted-foreground leading-relaxed italic">
+                            Trabajamos bajo el régimen simplificado de persona natural con negocio (RUS), que nos permite ofrecerte precios competitivos sin la carga operativa de una empresa formal. Mi RUC está activo y emitimos comprobantes de pago válidos para SUNAT.
+                        </p>
+                    </div>
                 </div>
 
                 {/* Modelo de Operación (OPEX) */}
                 <div className="flex flex-col gap-6">
-                    <div className={`rounded-3xl p-6 flex-1 flex flex-col transition-all border ${
-                        model === 'internal' 
-                            ? 'bg-foreground text-background border-foreground shadow-xl' 
-                            : 'bg-card border-border/50'
-                    }`}>
+                    <div className="rounded-3xl p-6 flex-1 flex flex-col transition-all border bg-card border-border/50 shadow-sm">
                         <div className="flex items-center justify-between mb-6">
                             <div className="flex items-center gap-2">
-                                <div className={`p-2 rounded-xl ${model === 'internal' ? 'bg-primary/20 text-primary' : 'bg-secondary text-muted-foreground/60'}`}>
+                                <div className="p-2 rounded-xl bg-primary/15 text-primary">
                                     <Zap size={16} />
                                 </div>
-                                <h4 className={`text-xs font-black uppercase tracking-widest ${model === 'internal' ? 'text-background' : 'text-foreground'}`}>
+                                <h4 className="text-xs font-black uppercase tracking-widest text-foreground">
                                     Suscripción & Soporte
                                 </h4>
                             </div>
@@ -1021,17 +1097,19 @@ function TabInversion({ opp, catalog }: { opp: any; catalog: any[] }) {
                                         'Monitoreo proactivo de estabilidad',
                                         'Actualizaciones de seguridad constantes'
                                     ].map((b, i) => (
-                                        <div key={i} className="flex items-center gap-3 text-[11px] font-medium opacity-80">
+                                        <div key={i} className="flex items-center gap-3 text-[11px] font-medium text-muted-foreground/60">
                                             <div className="w-1.5 h-1.5 rounded-full bg-primary" />
                                             {b}
                                         </div>
                                     ))}
                                 </div>
-                                <div className="pt-6 border-t border-background/10 flex justify-between items-end">
-                                    <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Suscripción Mensual</span>
+                                <div className="pt-6 border-t border-border/20 flex justify-between items-end">
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Suscripción Mensual</span>
                                     <div className="text-right">
                                         <p className="text-3xl font-black text-primary tracking-tighter italic leading-none">{formatCurrency(opex)}</p>
-                                        <p className="text-[9px] font-bold opacity-60 uppercase mt-1">S/ IGV</p>
+                                        <p className="text-[9px] font-bold text-muted-foreground/60 uppercase mt-1">
+                                            {includeIgv ? 'C/ IGV' : 'S/ IGV'}
+                                        </p>
                                     </div>
                                 </div>
                             </div>
@@ -1257,7 +1335,7 @@ export function ClientPortalView({ opportunity, client, catalog, phases: phasesP
     const status = opp.status || 'discovery'
     
     // Normalizar fases: si vienen por prop (proyectos), usarlas. Si no, usar las del JSONB (oportunidades).
-    const realPhases = phasesProp || opp.phases_plan_jsonb || []
+    const realPhases = (phasesProp && phasesProp.length > 0) ? phasesProp : (opp.phases_plan_jsonb || [])
     const hasRealPhases = realPhases.length > 0
 
     return (
@@ -1284,7 +1362,7 @@ export function ClientPortalView({ opportunity, client, catalog, phases: phasesP
 
             {/* Contenido del Tab Activo */}
             <main className="px-4 py-5">
-                {activeTab === 'resumen' && <TabResumenEjecutivo opp={opp} client={client} phases={realPhases} />}
+                {activeTab === 'resumen' && <TabResumenEjecutivo opp={opp} client={client} phases={realPhases} catalog={catalog} />}
                 {activeTab === 'inteligencia' && <TabInteligenciaMercado client={client} />}
                 {activeTab === 'estrategia' && <TabEstrategiaDigital opp={opp} client={client} />}
                 {activeTab === 'tecnica' && <TabPropuestaTecnica opp={opp} catalog={catalog} phases={realPhases} />}

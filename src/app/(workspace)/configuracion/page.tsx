@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { applyTheme, saveThemeCookie, updateCustomColor, getCustomColorsFromCookie } from '@/components/providers/ThemeProvider'
-import { Palette, Check, Paintbrush, Info, Settings, Loader2, Copy, Pencil } from 'lucide-react'
+import { Palette, Check, Paintbrush, Info, Settings, Loader2, Copy, Pencil, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { createClient } from '@/utils/supabase/client'
 import { Theme } from '@/types'
@@ -77,6 +77,7 @@ export default function ConfiguracionPage() {
     // Estados para Importación
     const [isImportModalOpen, setIsImportModalOpen] = useState(false)
     const [cssInput, setCssInput] = useState('')
+    const [importThemeName, setImportThemeName] = useState('')
     const [isProcessing, setIsProcessing] = useState(false)
 
     // Estados para Edición
@@ -141,12 +142,16 @@ export default function ConfiguracionPage() {
 
         setIsProcessing(true)
         try {
-            // 1. Extraer nombre del tema (de comentario o clase)
-            let themeName = 'Tema Importado'
-            const commentMatch = cssInput.match(/\/\*\*?\s*(?:AURA OS\s*—\s*)?Tema\s*["']([^"']+)["']\s*\*?\//i)
-            const classMatch = cssInput.match(/\.theme-([a-z-]+)/i)
-            if (commentMatch) themeName = commentMatch[1]
-            else if (classMatch) themeName = classMatch[1].charAt(0).toUpperCase() + classMatch[1].slice(1)
+            // 1. Determinar nombre del tema (prioridad: input > comentario > default)
+            let themeName = importThemeName.trim()
+            
+            if (!themeName) {
+                const commentMatch = cssInput.match(/\/\*\*?\s*(?:AURA OS\s*—\s*)?Tema\s*["']([^"']+)["']\s*\*?\//i)
+                const classMatch = cssInput.match(/\.theme-([a-z-]+)/i)
+                if (commentMatch) themeName = commentMatch[1]
+                else if (classMatch) themeName = classMatch[1].charAt(0).toUpperCase() + classMatch[1].slice(1)
+                else themeName = 'Tema Importado'
+            }
 
             // 2. Parsear variables HSL
             const hslValues: Record<string, string> = {}
@@ -191,6 +196,7 @@ export default function ConfiguracionPage() {
 
             toast.success(`Tema "${themeName}" guardado en Supabase`)
             setCssInput('')
+            setImportThemeName('')
             setIsImportModalOpen(false)
             loadThemes() // Recargar galería
             
@@ -255,6 +261,39 @@ export default function ConfiguracionPage() {
         setEditHslValues(prev => ({ ...prev, [key]: hsl }))
     }
 
+    const handleDelete = async (theme: Theme, e: React.MouseEvent) => {
+        e.stopPropagation()
+        if (theme.is_default) {
+            toast.error('No puedes eliminar el tema por defecto')
+            return
+        }
+        if (!confirm(`¿Eliminar tema "${theme.name}"?`)) return
+
+        setIsProcessing(true)
+        try {
+            // Si el tema a eliminar es el activo, cambiar al default primero
+            if (activeTheme === theme.slug) {
+                const defaultTheme = themes.find(t => t.is_default)
+                if (defaultTheme) {
+                    await handleThemeSelect(defaultTheme)
+                }
+            }
+
+            const { error } = await supabase.from('themes').delete().eq('id', theme.id)
+            if (error) {
+                console.error('Error deleting theme:', error)
+                throw new Error(error.message)
+            }
+            toast.success('Tema eliminado')
+            await loadThemes()
+        } catch (err: any) {
+            console.error('Caught error during deletion:', err)
+            toast.error('No se pudo eliminar el tema. Es posible que esté siendo usado como base por algún cliente.')
+        } finally {
+            setIsProcessing(false)
+        }
+    }
+
     const EDITABLE_VARS = [
         { key: 'primary', label: 'Principal' },
         { key: 'background', label: 'Fondo' },
@@ -299,16 +338,21 @@ export default function ConfiguracionPage() {
                 <div className="space-y-4">
                     <div className="bg-secondary/50 rounded-xl p-4 border border-border/50 space-y-3">
                         <div className="flex items-center justify-between">
-                            <p className="text-[10px] font-black uppercase tracking-widest text-primary">Plantilla Maestra</p>
+                            <div className="space-y-0.5">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-primary">Plantilla Maestra</p>
+                                <p className="text-[9px] text-muted-foreground font-medium leading-tight max-w-[280px]">
+                                    Copia este esquema y dáselo a la IA indicándole: "Genera un tema compatible con Aura OS usando exactamente estas variables en formato HSL (solo números y %). No omitas ninguna."
+                                </p>
+                            </div>
                             <button
                                 onClick={() => {
                                     const template = `--background: 0 0% 100%;&#10;--foreground: 0 0% 0%;&#10;--primary: 220 100% 50%;&#10;--primary-foreground: 0 0% 100%;&#10;--card: 0 0% 100%;&#10;--card-foreground: 0 0% 0%;&#10;--popover: 0 0% 100%;&#10;--popover-foreground: 0 0% 0%;&#10;--secondary: 220 10% 95%;&#10;--secondary-foreground: 220 10% 10%;&#10;--muted: 220 10% 95%;&#10;--muted-foreground: 220 10% 40%;&#10;--accent: 220 10% 95%;&#10;--accent-foreground: 220 10% 10%;&#10;--destructive: 0 100% 50%;&#10;--destructive-foreground: 0 0% 100%;&#10;--border: 220 10% 90%;&#10;--input: 220 10% 90%;&#10;--ring: 220 100% 50%;&#10;--radius: 0.75rem;`
                                     navigator.clipboard.writeText(template.replace(/&#10;/g, '\n'))
                                     toast.success('Plantilla copiada')
                                 }}
-                                className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors"
+                                className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors bg-background/50 px-2 py-1.5 rounded-lg border border-border/50"
                             >
-                                <Copy size={10} /> Copiar Plantilla
+                                <Copy size={10} /> Copiar para IA
                             </button>
                         </div>
                         <pre className="text-[8px] font-mono font-bold text-muted-foreground leading-tight max-h-[100px] overflow-y-auto">
@@ -323,13 +367,31 @@ export default function ConfiguracionPage() {
                         </pre>
                     </div>
 
-                    <textarea
-                        value={cssInput}
-                        onChange={e => setCssInput(e.target.value)}
-                        placeholder="Pega aquí tu CSS...&#10;/* Tema 'Nombre' */&#10;--primary: 220 100% 50%;"
-                        rows={6}
-                        className="w-full px-4 py-3 rounded-xl border border-border bg-background text-[11px] font-mono font-bold text-foreground focus:ring-2 focus:ring-primary outline-none transition-all resize-none"
-                    />
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground ml-1">
+                            Nombre del Tema (Opcional)
+                        </label>
+                        <input 
+                            type="text"
+                            value={importThemeName}
+                            onChange={e => setImportThemeName(e.target.value)}
+                            placeholder="Ej: Aura Dark, Midnight Blue..."
+                            className="w-full px-4 py-3 rounded-xl border border-border bg-background text-sm font-bold focus:ring-2 focus:ring-primary outline-none transition-all"
+                        />
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground ml-1">
+                            Código CSS (Variables HSL)
+                        </label>
+                        <textarea
+                            value={cssInput}
+                            onChange={e => setCssInput(e.target.value)}
+                            placeholder="Pega aquí tu CSS...&#10;--primary: 220 100% 50%;"
+                            rows={6}
+                            className="w-full px-4 py-3 rounded-xl border border-border bg-background text-[11px] font-mono font-bold text-foreground focus:ring-2 focus:ring-primary outline-none transition-all resize-none"
+                        />
+                    </div>
                     
                     <button
                         onClick={handleImportCss}
@@ -426,19 +488,19 @@ export default function ConfiguracionPage() {
                             ].filter(Boolean)
 
                             return (
-                                <button
+                                <div
                                     key={theme.id}
                                     onClick={() => handleThemeSelect(theme)}
                                     className={`
-                                        group relative flex items-start gap-4 rounded-xl border p-4 text-left
-                                        transition-all duration-200 hover:shadow-md
+                                        group relative flex items-start gap-4 rounded-xl border p-5 text-left
+                                        transition-all duration-200 hover:shadow-md cursor-pointer min-h-[88px]
                                         ${isActive
                                             ? 'border-primary bg-primary/10 shadow-sm ring-2 ring-primary/30'
                                             : 'border-border bg-background hover:border-primary/40 hover:bg-secondary'
                                         }
                                     `}
                                 >
-                                    <div className="flex shrink-0 flex-col gap-1 pt-0.5">
+                                    <div className="flex shrink-0 flex-col gap-1.5 pt-0.5">
                                         {previewColors.map((hsl, i) => (
                                             <div
                                                 key={i}
@@ -447,7 +509,7 @@ export default function ConfiguracionPage() {
                                             />
                                         ))}
                                     </div>
-                                    <div className="flex-1 min-w-0 pr-6">
+                                    <div className="flex-1 min-w-0">
                                         <p className="text-sm font-bold text-foreground leading-tight truncate">
                                             {theme.name}
                                         </p>
@@ -457,29 +519,50 @@ export default function ConfiguracionPage() {
                                     </div>
                                     
                                     {isActive && (
-                                        <div className="absolute top-3 right-3 h-5 w-5 rounded-full bg-primary flex items-center justify-center">
-                                            <Check size={11} className="text-primary-foreground" strokeWidth={3} />
+                                        <div className="flex items-center gap-1 shrink-0">
+                                            <div className="h-6 w-6 rounded-full bg-primary flex items-center justify-center" title="Activo">
+                                                <Check size={12} className="text-primary-foreground" strokeWidth={3} />
+                                            </div>
+                                            <button
+                                                onClick={(e) => openEditModal(theme, e)}
+                                                className="h-6 w-6 rounded-lg text-primary hover:bg-primary/20 transition-all flex items-center justify-center"
+                                                title="Editar"
+                                            >
+                                                <Pencil size={12} />
+                                            </button>
+                                            {!theme.is_default && (
+                                                <button
+                                                    onClick={(e) => handleDelete(theme, e)}
+                                                    className="h-6 w-6 rounded-lg text-destructive hover:bg-destructive/10 transition-all flex items-center justify-center"
+                                                    title="Eliminar"
+                                                >
+                                                    <Trash2 size={12} />
+                                                </button>
+                                            )}
                                         </div>
                                     )}
 
                                     {!isActive && (
-                                        <button
-                                            onClick={(e) => openEditModal(theme, e)}
-                                            className="absolute top-3 right-3 p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all opacity-0 group-hover:opacity-100"
-                                        >
-                                            <Pencil size={12} />
-                                        </button>
+                                        <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button
+                                                onClick={(e) => openEditModal(theme, e)}
+                                                className="h-6 w-6 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all flex items-center justify-center"
+                                                title="Editar"
+                                            >
+                                                <Pencil size={12} />
+                                            </button>
+                                            {!theme.is_default && (
+                                                <button
+                                                    onClick={(e) => handleDelete(theme, e)}
+                                                    className="h-6 w-6 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all flex items-center justify-center"
+                                                    title="Eliminar"
+                                                >
+                                                    <Trash2 size={12} />
+                                                </button>
+                                            )}
+                                        </div>
                                     )}
-
-                                    {isActive && (
-                                        <button
-                                            onClick={(e) => openEditModal(theme, e)}
-                                            className="absolute top-10 right-3 p-1.5 rounded-lg text-primary hover:bg-primary/20 transition-all"
-                                        >
-                                            <Pencil size={12} />
-                                        </button>
-                                    )}
-                                </button>
+                                </div>
                             )
                         })}
                     </div>

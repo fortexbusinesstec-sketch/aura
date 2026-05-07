@@ -99,6 +99,7 @@ export interface PitchDraft {
     selectedInfrastructureIds: string[]
     totalCalculated: number
     totalCapex: number
+    totalInfraCapex: number
     totalOpex: number
 }
 
@@ -123,6 +124,7 @@ export interface FinancialsData {
     roi_estimate: string;
     revenue_potential: string;
     payment_terms: string;
+    include_igv?: boolean;
 }
 
 export interface Opportunity {

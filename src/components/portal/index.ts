@@ -25,4 +25,4 @@ export { CommentModal } from './CommentModal'
 export { ApprovePhaseModal } from './ApprovePhaseModal'
 
 // Theming
-export { PortalThemePicker } from './PortalThemePicker'
+// PortalThemePicker ha sido removido a favor de temas por cliente persistentes

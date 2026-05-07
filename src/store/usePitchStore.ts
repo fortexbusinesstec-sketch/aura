@@ -75,7 +75,8 @@ const defaultStrategy: StrategyData = {
 const defaultFinancials: FinancialsData = {
     roi_estimate: '',
     revenue_potential: '',
-    payment_terms: ''
+    payment_terms: '',
+    include_igv: true
 }
 
 export const usePitchStore = create<PitchState>((set, get) => ({
@@ -90,6 +91,7 @@ export const usePitchStore = create<PitchState>((set, get) => ({
             selectedInfrastructureIds: [],
             totalCalculated: 0,
             totalCapex: 0,
+            totalInfraCapex: 0,
             totalOpex: 0
         },
         discount_applied: 0,
@@ -185,6 +187,7 @@ export const usePitchStore = create<PitchState>((set, get) => ({
                     selectedInfrastructureIds: [],
                     totalCalculated: 0,
                     totalCapex: 0,
+                    totalInfraCapex: 0,
                     totalOpex: 0
                 },
                 discount_applied: 0,
@@ -488,8 +491,9 @@ export const usePitchStore = create<PitchState>((set, get) => ({
         })
 
         const discountAmount = (subtotalCapex * (currentOpportunity.discount_applied || 0)) / 100
-        const totalCapex = Math.round(Math.max(0, subtotalCapex - discountAmount))
+        const totalCapex = Math.round(subtotalCapex)
         const totalOpex = Math.round(subtotalOpex)
+        const discountedCapex = subtotalCapex - discountAmount
 
         set((state) => ({
             currentOpportunity: {
@@ -499,7 +503,9 @@ export const usePitchStore = create<PitchState>((set, get) => ({
                     totalCapex,
                     totalOpex,
                     totalInfraCapex: infraCapex,
-                    totalCalculated: totalCapex + totalOpex
+                    totalCalculated: (currentOpportunity.financials_jsonb?.include_igv ?? true) 
+                        ? Math.round((discountedCapex + totalOpex) * 1.18)
+                        : Math.round(discountedCapex + totalOpex)
                 }
             }
         }))

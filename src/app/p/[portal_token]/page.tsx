@@ -6,7 +6,6 @@ import { createClient } from '@/utils/supabase/client'
 import { PinScreen } from '@/components/portal/PinScreen'
 import { PortalDashboard } from '@/components/portal/PortalDashboard'
 import { ExecutionPortalView } from '@/components/portal/ExecutionPortalView'
-import { PortalThemePicker } from '@/components/portal/PortalThemePicker'
 import { ThemeInjector } from '@/components/providers/ThemeInjector'
 import { Loader2 } from 'lucide-react'
 
@@ -167,7 +166,6 @@ export default function ClientPortalPage() {
     if (viewMode === 'execution' && projectData) {
         return (
             <ThemeInjector source="client" clientId={clientId}>
-                <PortalThemePicker portalToken={portal_token} />
                 <ExecutionPortalView
                     client={clientData}
                     project={projectData}
@@ -184,7 +182,6 @@ export default function ClientPortalPage() {
     // Render proposal view
     return (
         <ThemeInjector source="client" clientId={clientId}>
-            <PortalThemePicker portalToken={portal_token} />
             <PortalDashboard
                 client={clientData}
                 project={projectData}
